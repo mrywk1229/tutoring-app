@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>補習社點名與學費管理系統</title>
+    <!-- 引入 Tailwind CSS 樣式 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Vue.js 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div id="app" class="max-w-4xl mx-auto p-4 sm:p-6">
+        <!-- 頂部標題與統計 -->
+        <header class="mb-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">📚 補習社學生管理</h1>
+            <p class="text-sm text-gray-500">輕鬆管理上堂點名與學費繳交情況</p>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                    <div class="text-sm text-blue-600 font-medium">總學生人數</div>
+                    <div class="text-2xl font-bold text-blue-900 mt-1">{{ students.length }}</div>
+                </div>
+                <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                    <div class="text-sm text-emerald-600 font-medium">已繳學費</div>
+                    <div class="text-2xl font-bold text-emerald-900 mt-1">{{ paidCount }} 人</div>
+                </div>
+                <div class="bg-rose-50 p-4 rounded-xl border border-rose-100 col-span-2 sm:col-span-1">
+                    <div class="text-sm text-rose-600 font-medium">未繳學費</div>
+                    <div class="text-2xl font-bold text-rose-900 mt-1">{{ students.length - paidCount }} 人</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 新增學生表單 -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
+            <h2 class="text-lg font-semibold mb-4">➕ 新增學生</h2>
+            <form @submit.prevent="addStudent" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <input v-model="newStudent.name" type="text" placeholder="學生姓名" required
+                    class="px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input v-model="newStudent.phone" type="text" placeholder="聯絡電話" required
+                    class="px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-xl transition shadow-sm">
+                    新增學生
+                </button>
+            </form>
+        </div>
+
+        <!-- 學生列表與點名 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-6 border-b border-gray-100">
+                <h2 class="text-lg font-semibold">學生點名與繳費記錄</h2>
+            </div>
+            
+            <div class="divide-y divide-gray-100" v-if="students.length > 0">
+                <div v-for="(student, index) in students" :key="index" class="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-gray-50/50 transition">
+                    <div>
+                        <div class="flex items-center gap-3">
+                            <h3 class="font-bold text-lg text-gray-900">{{ student.name }}</h3>
+                            <span class="text-sm text-gray-500">{{ student.phone }}</span>
+                        </div>
+                        <div class="text-sm text-gray-600 mt-1">
+                            剩餘堂數：<span class="font-semibold text-blue-600">{{ student.lessons }}</span> 堂
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 w-full sm:w-auto justify-end flex-wrap">
+                        <!-- 學費狀態按鈕 -->
+                        <button @click="togglePaid(index)"
+                            :class="student.isPaid ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'"
+                            class="px-3 py-1.5 rounded-lg text-sm font-medium border transition">
+                            {{ student.isPaid ? '已繳費' : '未繳費' }}
+                        </button>
+
+                        <!-- 點名扣堂按鈕 -->
+                        <button @click="attendLesson(index)"
+                            class="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg text-sm font-medium transition">
+                            點名 (-1堂)
+                        </button>
+
+                        <!-- 刪除學生 -->
+                        <button @click="removeStudent(index)"
+                            class="text-gray-400 hover:text-rose-600 p-1.5 rounded-lg transition">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div v-else class="p-12 text-center text-gray-400">
+                目前沒有學生資料，請在上方新增。
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, watch, onMounted } = Vue
+
+        createApp({
+            setup() {
+                const students = ref([])
+                const newStudent = ref({ name: '', phone: '', lessons: 8, isPaid: false })
+
+                // 從瀏覽器本地儲存讀取資料
+                onMounted(() => {
+                    const saved = localStorage.getItem('tutoring_students')
+                    if (saved) {
+                        students.value = JSON.parse(saved)
+                    } else {
+                        // 預設示範資料
+                        students.value = [
+                            { name: '陳大文', phone: '91234567', lessons: 6, isPaid: true },
+                            { name: '張小明', phone: '62345678', lessons: 4, isPaid: false }
+                        ]
+                    }
+                })
+
+                // 自動儲存到本地
+                watch(students, (newValue) => {
+                    localStorage.setItem('tutoring_students', JSON.stringify(newValue))
+                }, { deep: true })
+
+                const paidCount = computed(() => {
+                    return students.value.filter(s => s.isPaid).length
+                })
+
+                const addStudent = () => {
+                    if (!newStudent.value.name.trim()) return
+                    students.value.push({
+                        name: newStudent.value.name,
+                        phone: newStudent.value.phone,
+                        lessons: 8, // 預設新報名 8 堂
+                        isPaid: false
+                    })
+                    newStudent.value.name = ''
+                    newStudent.value.phone = ''
+                }
+
+                const attendLesson = (index) => {
+                    if (students.value[index].lessons > 0) {
+                        students.value[index].lessons -= 1
+                    } else {
+                        alert('該學生剩餘堂數為 0，請提醒續費！')
+                    }
+                }
+
+                const togglePaid = (index) => {
+                    students.value[index].isPaid = !students.value[index].isPaid
+                }
+
+                const removeStudent = (index) => {
+                    if (confirm('確定要刪除這位學生嗎？')) {
+                        students.value.splice(index, 1)
+                    }
+                }
+
+                return {
+                    students,
+                    newStudent,
+                    paidCount,
+                    addStudent,
+                    attendLesson,
+                    togglePaid,
+                    removeStudent
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
