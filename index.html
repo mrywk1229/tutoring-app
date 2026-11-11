@@ -4,93 +4,170 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>補習社點名與學費管理系統</title>
-    <!-- 引入 Tailwind CSS 樣式 -->
+    <!-- Tailwind CSS 樣式 -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入 Vue.js 3 -->
+    <!-- Vue.js 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 </head>
 <body class="bg-gray-50 text-gray-800">
-    <div id="app" class="max-w-4xl mx-auto p-4 sm:p-6">
-        <!-- 頂部標題與統計 -->
-        <header class="mb-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h1 class="text-2xl font-bold text-gray-900 mb-2">📚 補習社學生管理</h1>
-            <p class="text-sm text-gray-500">輕鬆管理上堂點名與學費繳交情況</p>
+    <div id="app" class="max-w-5xl mx-auto p-4 sm:p-6">
+        
+        <!-- 頂部標題與頁籤切換 -->
+        <header class="mb-6 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">📚 補習社點名與學費管理</h1>
+                <p class="text-sm text-gray-500 mt-1">專科班 / 功課班點名、月曆檢視與 Excel 匯出</p>
+            </div>
             
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
-                <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                    <div class="text-sm text-blue-600 font-medium">總學生人數</div>
-                    <div class="text-2xl font-bold text-blue-900 mt-1">{{ students.length }}</div>
-                </div>
-                <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
-                    <div class="text-sm text-emerald-600 font-medium">已繳學費</div>
-                    <div class="text-2xl font-bold text-emerald-900 mt-1">{{ paidCount }} 人</div>
-                </div>
-                <div class="bg-rose-50 p-4 rounded-xl border border-rose-100 col-span-2 sm:col-span-1">
-                    <div class="text-sm text-rose-600 font-medium">未繳學費</div>
-                    <div class="text-2xl font-bold text-rose-900 mt-1">{{ students.length - paidCount }} 人</div>
-                </div>
+            <!-- 視圖切換按鈕 -->
+            <div class="flex bg-gray-100 p-1 rounded-xl">
+                <button @click="currentTab = 'students'" :class="currentTab === 'students' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'" class="px-4 py-2 rounded-lg text-sm font-medium transition">
+                    📋 學生與點名
+                </button>
+                <button @click="currentTab = 'calendar'" :class="currentTab === 'calendar' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'" class="px-4 py-2 rounded-lg text-sm font-medium transition">
+                    📅 上堂月曆
+                </button>
+                <button @click="currentTab = 'export'" :class="currentTab === 'export' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'" class="px-4 py-2 rounded-lg text-sm font-medium transition">
+                    📊 匯出點名紙
+                </button>
             </div>
         </header>
 
-        <!-- 新增學生表單 -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
-            <h2 class="text-lg font-semibold mb-4">➕ 新增學生</h2>
-            <form @submit.prevent="addStudent" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <input v-model="newStudent.name" type="text" placeholder="學生姓名" required
-                    class="px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <input v-model="newStudent.phone" type="text" placeholder="聯絡電話" required
-                    class="px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <button type="submit"
-                    class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-xl transition shadow-sm">
-                    新增學生
-                </button>
-            </form>
-        </div>
-
-        <!-- 學生列表與點名 -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="p-6 border-b border-gray-100">
-                <h2 class="text-lg font-semibold">學生點名與繳費記錄</h2>
-            </div>
-            
-            <div class="divide-y divide-gray-100" v-if="students.length > 0">
-                <div v-for="(student, index) in students" :key="index" class="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-gray-50/50 transition">
+        <!-- 頁籤一：學生與點名管理 -->
+        <main v-if="currentTab === 'students'">
+            <!-- 新增學生與上課資料表單 -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
+                <h2 class="text-lg font-semibold mb-4">➕ 新增學生 / 課程登記</h2>
+                <form @submit.prevent="addStudent" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
-                        <div class="flex items-center gap-3">
-                            <h3 class="font-bold text-lg text-gray-900">{{ student.name }}</h3>
-                            <span class="text-sm text-gray-500">{{ student.phone }}</span>
+                        <label class="block text-xs text-gray-500 mb-1">學生姓名</label>
+                        <input v-model="newStudent.name" type="text" placeholder="例如：陳大文" required class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">聯絡電話</label>
+                        <input v-model="newStudent.phone" type="text" placeholder="例如：91234567" required class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">上堂類別</label>
+                        <select v-model="newStudent.category" class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="專科班">專科班</option>
+                            <option value="功課班">功課班</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">預設上課時間</label>
+                        <input v-model="newStudent.classTime" type="time" required class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">剩餘堂數</label>
+                        <input v-model.number="newStudent.remainingLessons" type="number" min="0" required class="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-xl transition shadow-sm">
+                            確認新增
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 學生列表與即時點名 -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                    <h2 class="text-lg font-semibold">學生清單與點名記錄</h2>
+                    <span class="text-xs text-gray-400">預設點名日期：今日 ({{ todayDate }})</span>
+                </div>
+                
+                <div class="divide-y divide-gray-100" v-if="students.length > 0">
+                    <div v-for="(student, index) in students" :key="index" class="p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div>
+                            <div class="flex items-center gap-3">
+                                <h3 class="font-bold text-lg text-gray-900">{{ student.name }}</h3>
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold" 
+                                      :class="student.category === '專科班' ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700'">
+                                    {{ student.category }}
+                                </span>
+                                <span class="text-sm text-gray-500">{{ student.phone }}</span>
+                            </div>
+                            <div class="text-sm text-gray-600 mt-2 flex gap-4">
+                                <span>⏰ 時間：<strong class="text-gray-800">{{ student.classTime }}</strong></span>
+                                <span>📚 剩餘堂數：<strong class="text-blue-600">{{ student.remainingLessons }}</strong> 堂</span>
+                            </div>
                         </div>
-                        <div class="text-sm text-gray-600 mt-1">
-                            剩餘堂數：<span class="font-semibold text-blue-600">{{ student.lessons }}</span> 堂
+
+                        <div class="flex items-center gap-3 w-full md:w-auto justify-end">
+                            <button @click="togglePaid(index)"
+                                :class="student.isPaid ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'"
+                                class="px-3 py-1.5 rounded-lg text-sm font-medium border transition">
+                                {{ student.isPaid ? '已繳費' : '未繳費' }}
+                            </button>
+
+                            <button @click="markAttendance(student)"
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition shadow-sm">
+                                點名出席 (-1堂)
+                            </button>
+
+                            <button @click="removeStudent(index)" class="text-gray-400 hover:text-rose-600 p-1.5 transition">
+                                🗑️
+                            </button>
                         </div>
                     </div>
+                </div>
+                <div v-else class="p-12 text-center text-gray-400">目前沒有學生記錄</div>
+            </div>
+        </main>
 
-                    <div class="flex items-center gap-3 w-full sm:w-auto justify-end flex-wrap">
-                        <!-- 學費狀態按鈕 -->
-                        <button @click="togglePaid(index)"
-                            :class="student.isPaid ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'"
-                            class="px-3 py-1.5 rounded-lg text-sm font-medium border transition">
-                            {{ student.isPaid ? '已繳費' : '未繳費' }}
-                        </button>
+        <!-- 頁籤二：月曆檢視上堂情況 -->
+        <main v-if="currentTab === 'calendar'">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-lg font-semibold">📅 上堂記錄月曆 ({{ currentYear }}年 {{ currentMonth + 1 }}月)</h2>
+                    <div class="flex gap-2">
+                        <button @click="changeMonth(-1)" class="px-3 py-1 border rounded-lg hover:bg-gray-50">← 上個月</button>
+                        <button @click="changeMonth(1)" class="px-3 py-1 border rounded-lg hover:bg-gray-50">下個月 →</button>
+                    </div>
+                </div>
 
-                        <!-- 點名扣堂按鈕 -->
-                        <button @click="attendLesson(index)"
-                            class="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg text-sm font-medium transition">
-                            點名 (-1堂)
-                        </button>
-
-                        <!-- 刪除學生 -->
-                        <button @click="removeStudent(index)"
-                            class="text-gray-400 hover:text-rose-600 p-1.5 rounded-lg transition">
-                            🗑️
-                        </button>
+                <!-- 月曆網格 -->
+                <div class="grid grid-cols-7 gap-1 text-center font-bold text-gray-500 mb-2">
+                    <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+                </div>
+                
+                <div class="grid grid-cols-7 gap-2">
+                    <div v-for="blank in firstDayOfWeek" :key="'b-'+blank" class="h-28 bg-gray-50/50 rounded-xl"></div>
+                    <div v-for="day in daysInMonth" :key="day" class="h-28 p-2 border border-gray-100 rounded-xl bg-white flex flex-col justify-between overflow-hidden">
+                        <div class="font-bold text-sm text-gray-700 text-right">{{ day }}</div>
+                        <div class="overflow-y-auto space-y-1 text-left flex-1">
+                            <div v-for="log in getLogsByDate(day)" :key="log.id" 
+                                 class="text-xs p-1 rounded font-medium flex items-center justify-between"
+                                 :class="log.category === '專科班' ? 'bg-purple-50 text-purple-700' : 'bg-orange-50 text-orange-700'">
+                                <span class="truncate">{{ log.studentName }}</span>
+                                <span class="text-[10px] text-gray-400">{{ log.time }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div v-else class="p-12 text-center text-gray-400">
-                目前沒有學生資料，請在上方新增。
+        </main>
+
+        <!-- 頁籤三：匯出每月 Excel 點名紙 -->
+        <main v-if="currentTab === 'export'">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 max-w-xl mx-auto">
+                <h2 class="text-lg font-semibold mb-4">📊 匯出每月點名紙 (Excel / CSV)</h2>
+                <p class="text-sm text-gray-500 mb-6">請選擇月份，系統將會匯出包含日期、學生姓名、上堂類別、時間及學費繳交狀態的 CSV 檔案。</p>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">選擇月份</label>
+                        <input v-model="exportMonth" type="month" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    
+                    <button @click="exportToCSV" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-xl transition shadow-sm flex justify-center items-center gap-2">
+                        📥 匯出成 Excel (CSV)
+                    </button>
+                </div>
             </div>
-        </div>
+        </main>
+
     </div>
 
     <script>
@@ -98,50 +175,61 @@
 
         createApp({
             setup() {
+                const currentTab = ref('students')
                 const students = ref([])
-                const newStudent = ref({ name: '', phone: '', lessons: 8, isPaid: false })
+                const attendanceLogs = ref([]) // 記錄：{ id, date, time, studentName, category }
 
-                // 從瀏覽器本地儲存讀取資料
+                const todayDate = new Date().toISOString().split('T')[0]
+                const exportMonth = ref(todayDate.slice(0, 7))
+
+                // 月曆相關變數
+                const currentYear = ref(new Date().getFullYear())
+                const currentMonth = ref(new Date().getMonth())
+
+                const newStudent = ref({
+                    name: '',
+                    phone: '',
+                    category: '專科班',
+                    classTime: '16:00',
+                    remainingLessons: 8,
+                    isPaid: false
+                })
+
                 onMounted(() => {
-                    const saved = localStorage.getItem('tutoring_students')
-                    if (saved) {
-                        students.value = JSON.parse(saved)
-                    } else {
-                        // 預設示範資料
-                        students.value = [
-                            { name: '陳大文', phone: '91234567', lessons: 6, isPaid: true },
-                            { name: '張小明', phone: '62345678', lessons: 4, isPaid: false }
-                        ]
-                    }
+                    const savedStudents = localStorage.getItem('tutoring_students_v2')
+                    const savedLogs = localStorage.getItem('tutoring_logs_v2')
+                    if (savedStudents) students.value = JSON.parse(savedStudents)
+                    if (savedLogs) attendanceLogs.value = JSON.parse(savedLogs)
                 })
 
-                // 自動儲存到本地
-                watch(students, (newValue) => {
-                    localStorage.setItem('tutoring_students', JSON.stringify(newValue))
-                }, { deep: true })
-
-                const paidCount = computed(() => {
-                    return students.value.filter(s => s.isPaid).length
-                })
+                watch(students, (val) => localStorage.setItem('tutoring_students_v2', JSON.stringify(val)), { deep: true })
+                watch(attendanceLogs, (val) => localStorage.setItem('tutoring_logs_v2', JSON.stringify(val)), { deep: true })
 
                 const addStudent = () => {
                     if (!newStudent.value.name.trim()) return
-                    students.value.push({
-                        name: newStudent.value.name,
-                        phone: newStudent.value.phone,
-                        lessons: 8, // 預設新報名 8 堂
-                        isPaid: false
-                    })
+                    students.value.push({ ...newStudent.value })
                     newStudent.value.name = ''
                     newStudent.value.phone = ''
                 }
 
-                const attendLesson = (index) => {
-                    if (students.value[index].lessons > 0) {
-                        students.value[index].lessons -= 1
-                    } else {
-                        alert('該學生剩餘堂數為 0，請提醒續費！')
+                const markAttendance = (student) => {
+                    if (student.remainingLessons <= 0) {
+                        alert('該學生堂數已用完，請提醒繳費續期！')
+                        return
                     }
+                    student.remainingLessons -= 1
+                    
+                    // 新增點名紀錄
+                    attendanceLogs.value.push({
+                        id: Date.now(),
+                        date: todayDate,
+                        time: student.classTime,
+                        studentName: student.name,
+                        category: student.category,
+                        isPaid: student.isPaid ? '已繳費' : '未繳費'
+                    })
+
+                    alert(`已為 ${student.name} 完成點名！`)
                 }
 
                 const togglePaid = (index) => {
@@ -149,19 +237,74 @@
                 }
 
                 const removeStudent = (index) => {
-                    if (confirm('確定要刪除這位學生嗎？')) {
-                        students.value.splice(index, 1)
+                    if (confirm('確定刪除該學生嗎？')) students.value.splice(index, 1)
+                }
+
+                // 月曆計算邏輯
+                const daysInMonth = computed(() => new Date(currentYear.value, currentMonth.value + 1, 0).getDate())
+                const firstDayOfWeek = computed(() => new Date(currentYear.value, currentMonth.value, 1).getDay())
+
+                const changeMonth = (delta) => {
+                    currentMonth.value += delta
+                    if (currentMonth.value > 11) {
+                        currentMonth.value = 0
+                        currentYear.value++
+                    } else if (currentMonth.value < 0) {
+                        currentMonth.value = 11
+                        currentYear.value--
                     }
                 }
 
+                const getLogsByDate = (day) => {
+                    const monthStr = String(currentMonth.value + 1).padStart(2, '0')
+                    const dayStr = String(day).padStart(2, '0')
+                    const dateQuery = `${currentYear.value}-${monthStr}-${dayStr}`
+                    return attendanceLogs.value.filter(log => log.date === dateQuery)
+                }
+
+                // 匯出 Excel (CSV)
+                const exportToCSV = () => {
+                    const filteredLogs = attendanceLogs.value.filter(log => log.date.startsWith(exportMonth.value))
+                    
+                    if (filteredLogs.length === 0) {
+                        alert('該月份沒有任何點名紀錄！')
+                        return
+                    }
+
+                    // 加入 UTF-8 BOM，防止 Excel 開啟中文時出現亂碼
+                    let csvContent = "\uFEFF"
+                    csvContent += "日期,時間,學生姓名,上堂類別,繳費狀態\n"
+
+                    filteredLogs.forEach(log => {
+                        csvContent += `"${log.date}","${log.time}","${log.studentName}","${log.category}","${log.isPaid}"\n`
+                    })
+
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+                    const link = document.createElement('a')
+                    link.href = URL.createObjectURL(blob)
+                    link.setAttribute('download', `補習社點名紙_${exportMonth.value}.csv`)
+                    document.body.appendChild(link)
+                    link.click()
+                    document.body.removeChild(link)
+                }
+
                 return {
+                    currentTab,
                     students,
                     newStudent,
-                    paidCount,
+                    todayDate,
+                    currentYear,
+                    currentMonth,
+                    daysInMonth,
+                    firstDayOfWeek,
+                    exportMonth,
                     addStudent,
-                    attendLesson,
+                    markAttendance,
                     togglePaid,
-                    removeStudent
+                    removeStudent,
+                    changeMonth,
+                    getLogsByDate,
+                    exportToCSV
                 }
             }
         }).mount('#app')
