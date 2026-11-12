@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>補習社點名與學費管理系統</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue.js 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-800">
-    <div id="app" class="max-w-6xl mx-auto p-4 sm:p-6" style="display: none;" :style="{ display: 'block' }">
+    <div id="app" class="max-w-6xl mx-auto p-4 sm:p-6">
         
         <!-- 頂部標題與頁籤 -->
         <header class="mb-6 bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -18,30 +20,27 @@
             </div>
             
             <div class="flex flex-wrap bg-gray-100 p-1 rounded-xl gap-1">
-                <button @click="currentTab = 'students'" :class="currentTab === 'students' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition">👥 學生與課程</button>
-                <button @click="currentTab = 'daily'" :class="currentTab === 'daily' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition">📅 每日點名</button>
-                <button @click="currentTab = 'monthCalendar'" :class="currentTab === 'monthCalendar' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition">🗓️ 上堂月曆</button>
-                <button @click="currentTab = 'weeklyStats'" :class="currentTab === 'weeklyStats' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition">📊 星期幾人數</button>
-                <button @click="currentTab = 'categoryStats'" :class="currentTab === 'categoryStats' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition">📁 課程種類</button>
-                <button @click="currentTab = 'export'" :class="currentTab === 'export' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition">📥 匯出明細</button>
+                <button @click="currentTab = 'students'" :class="currentTab === 'students' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium">👥 學生與課程</button>
+                <button @click="currentTab = 'daily'" :class="currentTab === 'daily' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium">📅 每日點名</button>
+                <button @click="currentTab = 'monthCalendar'" :class="currentTab === 'monthCalendar' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium">🗓️ 上堂月曆</button>
+                <button @click="currentTab = 'weeklyStats'" :class="currentTab === 'weeklyStats' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium">📊 星期幾人數</button>
+                <button @click="currentTab = 'categoryStats'" :class="currentTab === 'categoryStats' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium">📁 課程種類</button>
+                <button @click="currentTab = 'export'" :class="currentTab === 'export' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium">📥 匯出明細</button>
             </div>
         </header>
 
         <!-- 頁籤一：學生與課程管理 -->
-        <main v-if="currentTab === 'students'">
+        <div v-if="currentTab === 'students'">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 mb-6">
                 <h2 class="text-lg font-semibold mb-4 text-gray-800">➕ 新增學生</h2>
                 <form @submit.prevent="addStudent" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">學生姓名</label>
-                        <input v-model="newStudent.name" type="text" placeholder="例如：陳大文" required class="w-full px-4 py-2 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-blue-500">
+                        <input v-model="newStudent.name" type="text" placeholder="例如：陳大文" required class="w-full px-4 py-2 rounded-xl border border-gray-300 outline-none">
                     </div>
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">所屬班級</label>
-                        <select v-model="newStudent.grade" class="w-full px-4 py-2 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="K1">K1</option><option value="K2">K2</option><option value="K3">K3</option>
-                            <option value="小一">小一</option><option value="小二">小二</option><option value="小三">小三</option>
-                            <option value="小四">小四</option><option value="小五">小五</option><option value="小六">小六</option>
+                        <select v-model="newStudent.grade" class="w-full px-4 py-2 rounded-xl border border-gray-300 outline-none">
                             <option value="中一">中一</option><option value="中二">中二</option><option value="中三">中三</option>
                             <option value="中四">中四</option><option value="中五">中五</option><option value="中六">中六</option>
                             <option value="個別學生">個別學生</option>
@@ -56,68 +55,62 @@
                         <input v-model="newStudent.school" type="text" placeholder="某某中學" class="w-full px-4 py-2 rounded-xl border border-gray-300 outline-none">
                     </div>
                     <div class="sm:col-span-2 lg:col-span-4 flex justify-end">
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-8 rounded-xl transition shadow-sm">建立學生檔案</button>
+                        <button type="submit" class="bg-blue-600 text-white font-medium py-2 px-8 rounded-xl shadow-sm">建立學生檔案</button>
                     </div>
                 </form>
             </div>
 
             <div class="space-y-4">
-                <div v-for="(student, sIndex) in students" :key="student.id" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
-                    <div class="flex items-center justify-between">
-                        <div @click="openQuickMenu(student)" class="flex items-center gap-3.5 cursor-pointer group flex-1">
-                            <div class="w-12 h-12 bg-blue-50 text-blue-600 font-bold rounded-full flex items-center justify-center text-lg group-hover:bg-blue-600 group-hover:text-white transition">
-                                {{ student.name ? student.name.charAt(0) : '學' }}
-                            </div>
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <h3 class="font-bold text-lg text-gray-900 group-hover:text-blue-600 transition underline decoration-dotted">{{ student.name }}</h3>
-                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">{{ student.grade }}</span>
-                                </div>
-                                <p class="text-xs text-gray-500 mt-0.5">📞 {{ student.phone || '無電話' }} | 🏫 {{ student.school || '無學校' }} | 點擊名字開啟快捷選單</p>
-                            </div>
+                <div v-for="(student, sIndex) in students" :key="student.id" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 flex items-center justify-between">
+                    <div @click="openQuickMenu(student)" class="flex items-center gap-3.5 cursor-pointer flex-1">
+                        <div class="w-12 h-12 bg-blue-50 text-blue-600 font-bold rounded-full flex items-center justify-center text-lg">
+                            {{ student.name ? student.name.charAt(0) : '學' }}
                         </div>
-                        <button @click="removeStudent(sIndex)" class="text-gray-400 hover:text-rose-600 p-2 transition">🗑️</button>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-bold text-lg text-gray-900 underline">{{ student.name }}</h3>
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">{{ student.grade }}</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-0.5">📞 {{ student.phone || '無電話' }} | 🏫 {{ student.school || '無學校' }} | 點擊開啟選單</p>
+                        </div>
                     </div>
+                    <button @click="removeStudent(sIndex)" class="text-gray-400 hover:text-rose-600 p-2">🗑️</button>
                 </div>
                 <div v-if="students.length === 0" class="bg-white p-12 rounded-2xl text-center text-gray-400 border border-gray-200">
                     目前沒有學生資料，請在上方新增。
                 </div>
             </div>
-        </main>
+        </div>
 
         <!-- 頁籤二：每日點名 -->
-        <main v-if="currentTab === 'daily'">
+        <div v-if="currentTab === 'daily'">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 pb-6 border-b">
+                <div class="flex items-center justify-between mb-6 pb-6 border-b">
                     <div class="flex items-center gap-2">
-                        <button @click="shiftDate(-1)" class="px-3.5 py-2 border rounded-xl hover:bg-gray-50 text-sm bg-white">← 上一日</button>
+                        <button @click="shiftDate(-1)" class="px-3.5 py-2 border rounded-xl text-sm bg-white">← 上一日</button>
                         <button @click="selectedDate = todayDate" class="px-3.5 py-2 bg-blue-50 text-blue-600 rounded-xl text-sm">今日</button>
-                        <button @click="shiftDate(1)" class="px-3.5 py-2 border rounded-xl hover:bg-gray-50 text-sm bg-white">下一日 →</button>
+                        <button @click="shiftDate(1)" class="px-3.5 py-2 border rounded-xl text-sm bg-white">下一日 →</button>
                     </div>
-                    <input v-model="selectedDate" type="date" class="px-3 py-1.5 border rounded-xl outline-none font-semibold">
+                    <input v-model="selectedDate" type="date" class="px-3 py-1.5 border rounded-xl font-semibold">
                 </div>
-
                 <div class="space-y-3" v-if="currentDayLessons.length > 0">
-                    <div v-for="item in currentDayLessons" :key="item.courseId + item.studentName" class="p-4 rounded-xl border flex items-center justify-between" :class="item.status === '待補堂' ? 'bg-rose-50/50 border-rose-200' : 'bg-emerald-50/50 border-emerald-200'">
-                        <div @click="openQuickMenu(item.studentRef)" class="cursor-pointer">
-                            <div class="flex items-center gap-2">
-                                <span class="font-bold text-base hover:text-blue-600 underline">{{ item.studentName }}</span>
-                                <span class="text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-700">{{ item.grade }}</span>
-                                <span class="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">{{ item.category }}</span>
-                            </div>
+                    <div v-for="item in currentDayLessons" :key="item.courseId" class="p-4 rounded-xl border flex items-center justify-between" :class="item.status === '待補堂' ? 'bg-rose-50 border-rose-200' : 'bg-emerald-50 border-emerald-200'">
+                        <div>
+                            <span class="font-bold text-base">{{ item.studentName }}</span>
+                            <span class="text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-700 ml-2">{{ item.grade }}</span>
                             <p class="text-xs text-gray-600 mt-1">課程：<strong class="text-blue-600">{{ item.courseName }}</strong></p>
                         </div>
-                        <button @click="toggleAttendance(item)" class="px-4 py-2 rounded-xl text-sm font-bold" :class="item.status === '待補堂' ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'">
-                            {{ item.status === '待補堂' ? '❌ 待補堂' : '✅ 出席' }}
+                        <button @click="toggleAttendance(item)" class="px-4 py-2 rounded-xl text-sm font-bold text-white" :class="item.status === '待補堂' ? 'bg-rose-600' : 'bg-emerald-600'">
+                            {{ item.status }}
                         </button>
                     </div>
                 </div>
                 <div v-else class="p-12 text-center text-gray-400 bg-gray-50 rounded-2xl border border-dashed">該日無上課堂數</div>
             </div>
-        </main>
+        </div>
 
         <!-- 頁籤三：上堂月曆 -->
-        <main v-if="currentTab === 'monthCalendar'">
+        <div v-if="currentTab === 'monthCalendar'">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
                 <div class="flex items-center justify-between mb-6 pb-4 border-b">
                     <h2 class="text-lg font-bold">🗓️ 上堂月曆 ({{ currentYear }}年 {{ currentMonth + 1 }}月)</h2>
@@ -130,199 +123,125 @@
                     <div class="text-rose-500">日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div class="text-blue-500">六</div>
                 </div>
                 <div class="grid grid-cols-7 gap-2">
-                    <div v-for="blank in firstDayOfWeek" :key="'b-'+blank" class="h-28 bg-gray-50/30 rounded-xl"></div>
-                    <div v-for="day in daysInMonth" :key="day" class="h-28 p-2 border rounded-xl bg-white flex flex-col justify-between overflow-hidden shadow-2xs">
+                    <div v-for="blank in firstDayOfWeek" :key="'b-'+blank" class="h-24 bg-gray-50 rounded-xl"></div>
+                    <div v-for="day in daysInMonth" :key="day" class="h-24 p-2 border rounded-xl bg-white flex flex-col justify-between overflow-hidden">
                         <div class="font-bold text-xs text-right text-gray-600">{{ day }}</div>
                         <div class="overflow-y-auto space-y-1 text-left flex-1 mt-1">
-                            <div v-for="log in getLogsByMonthDate(day)" :key="log.courseId + log.studentName" class="text-[10px] p-1 rounded bg-blue-50 text-blue-700 border border-blue-100 truncate">
+                            <div v-for="log in getLogsByMonthDate(day)" :key="log.courseId + log.studentName" class="text-[10px] p-1 rounded bg-blue-50 text-blue-700 truncate">
                                 {{ log.studentName }} ({{ log.courseName }})
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </main>
+        </div>
 
         <!-- 頁籤四：星期幾人數 -->
-        <main v-if="currentTab === 'weeklyStats'">
+        <div v-if="currentTab === 'weeklyStats'">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
                 <h2 class="text-lg font-bold mb-4">📊 每週星期幾上課人數統計</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div v-for="dayObj in weekDaysList" :key="dayObj.id" class="p-5 rounded-2xl border bg-gray-50/50">
-                        <div class="flex items-center justify-between mb-3"><h3 class="font-bold">{{ dayObj.name }}</h3><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">共 {{ dayObj.students.length }} 人</span></div>
-                        <div class="space-y-2 max-h-48 overflow-y-auto">
-                            <div v-for="s in dayObj.students" :key="s.studentName + s.courseName" class="text-xs p-2 bg-white rounded-xl border flex justify-between">
-                                <div><span class="font-bold">{{ s.studentName }}</span><div class="text-blue-600">{{ s.courseName }}</div></div>
-                                <span class="text-[10px] text-purple-600">{{ s.category }}</span>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div v-for="dayObj in weekDaysList" :key="dayObj.id" class="p-4 rounded-2xl border bg-gray-50">
+                        <div class="flex justify-between mb-3"><h3 class="font-bold">{{ dayObj.name }}</h3><span class="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700">共 {{ dayObj.students.length }} 人</span></div>
+                        <div class="space-y-2 max-h-40 overflow-y-auto">
+                            <div v-for="s in dayObj.students" :key="s.studentName" class="text-xs p-2 bg-white rounded-xl border flex justify-between">
+                                <span>{{ s.studentName }} ({{ s.courseName }})</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </main>
+        </div>
 
         <!-- 頁籤五：課程種類 -->
-        <main v-if="currentTab === 'categoryStats'">
+        <div v-if="currentTab === 'categoryStats'">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
                 <h2 class="text-lg font-bold mb-4">📁 依課程種類檢視學生</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div v-for="cat in categoryGroups" :key="cat.name" class="p-5 rounded-2xl border bg-gray-50/50">
-                        <div class="flex items-center justify-between mb-4 pb-3 border-b"><h3 class="font-bold">📚 {{ cat.name }}</h3><span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">總人數：{{ cat.students.length }} 人</span></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div v-for="cat in categoryGroups" :key="cat.name" class="p-4 rounded-2xl border bg-gray-50">
+                        <div class="flex justify-between mb-3 pb-2 border-b"><h3 class="font-bold">📚 {{ cat.name }}</h3><span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">總人數：{{ cat.students.length }}</span></div>
                         <div class="space-y-2">
-                            <div v-for="s in cat.students" :key="s.studentName" class="p-3 bg-white rounded-xl border flex justify-between text-xs">
-                                <div><span class="font-bold">{{ s.studentName }}</span> ({{ s.grade }})<div class="text-gray-500">{{ s.courseName }}</div></div>
-                                <span class="px-2 py-1 rounded" :class="s.isPaid ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'">{{ s.isPaid ? '已繳費' : '待繳費' }}</span>
+                            <div v-for="s in cat.students" :key="s.studentName" class="p-2 bg-white rounded-xl border flex justify-between text-xs">
+                                <span>{{ s.studentName }} - {{ s.courseName }}</span>
+                                <span :class="s.isPaid ? 'text-emerald-600' : 'text-rose-500'">{{ s.isPaid ? '已繳費' : '待繳費' }}</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </main>
+        </div>
 
         <!-- 頁籤六：匯出明細 Excel -->
-        <main v-if="currentTab === 'export'">
+        <div v-if="currentTab === 'export'">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 max-w-xl mx-auto">
                 <h2 class="text-lg font-bold mb-2">📊 匯出學員課程明細 Excel (CSV)</h2>
-                <p class="text-sm text-gray-500 mb-6">表格將橫向展開包含：姓名、班級、課堂種類、課堂名稱、上課日期、繳費狀態、繳費金額。</p>
+                <p class="text-sm text-gray-500 mb-6">包含：姓名、班級、課堂種類、課堂名稱、上課日期 1~4...、繳費狀態、繳費金額。</p>
                 <div class="space-y-4">
-                    <input v-model="exportMonth" type="month" class="w-full px-4 py-2.5 rounded-xl border outline-none font-medium">
-                    <button @click="exportToCSV" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-xl transition shadow-sm">📥 下載明細報表 (CSV)</button>
+                    <input v-model="exportMonth" type="month" class="w-full px-4 py-2.5 rounded-xl border outline-none">
+                    <button @click="exportToCSV" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-xl shadow-sm">📥 下載明細報表 (CSV)</button>
                 </div>
             </div>
-        </main>
+        </div>
 
-        <!-- 九宮格快捷操作彈窗 -->
-        <div v-if="showQuickMenu && activeStudent" @click.self="showQuickMenu = false" class="fixed inset-0 bg-black/50 backdrop-blur-[1px] flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
-            <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl">
-                <div class="flex items-center gap-4 mb-6">
-                    <div class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-2xl font-bold text-gray-600 shrink-0">{{ activeStudent.name ? activeStudent.name.charAt(0) : '學' }}</div>
-                    <div><h3 class="text-2xl font-bold text-gray-900">{{ activeStudent.name }}</h3><p class="text-sm text-gray-500">今天想處理什麼？</p></div>
+        <!-- 九宮格快捷選單 Modal -->
+        <div v-if="showQuickMenu && activeStudent" @click.self="showQuickMenu = false" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center">
+                <h3 class="text-xl font-bold mb-1">{{ activeStudent.name }}</h3>
+                <p class="text-xs text-gray-500 mb-6">請選擇操作項目</p>
+                <div class="grid grid-cols-3 gap-3 mb-4">
+                    <button @click="handleQuickAction('attend')" class="p-3 bg-emerald-50 text-emerald-700 rounded-2xl text-xs font-bold">✓ 上課</button>
+                    <button @click="handleQuickAction('leave')" class="p-3 bg-amber-50 text-amber-700 rounded-2xl text-xs font-bold">📅 請假</button>
+                    <button @click="handleQuickAction('pay')" class="p-3 bg-teal-50 text-teal-700 rounded-2xl text-xs font-bold">$ 收費</button>
+                    <button @click="handleQuickAction('addCourse')" class="p-3 bg-blue-50 text-blue-700 rounded-2xl text-xs font-bold">+ 新增課程</button>
+                    <button @click="handleQuickAction('studentDetail')" class="p-3 bg-purple-50 text-purple-700 rounded-2xl text-xs font-bold">👤 學生詳情</button>
+                    <button @click="showQuickMenu = false" class="p-3 bg-gray-100 text-gray-600 rounded-2xl text-xs font-bold">取消</button>
                 </div>
-                <div class="grid grid-cols-3 gap-y-6 gap-x-4 text-center my-4">
-                    <button @click="handleQuickAction('attend')" class="flex flex-col items-center gap-2 group"><div class="w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl">✓</div><span class="text-sm">上課</span></button>
-                    <button @click="handleQuickAction('leave')" class="flex flex-col items-center gap-2 group"><div class="w-14 h-14 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xl">📅</div><span class="text-sm">請假</span></button>
-                    <button @click="handleQuickAction('makeup')" class="flex flex-col items-center gap-2 group"><div class="w-14 h-14 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center text-xl">🕒</div><span class="text-sm">補課</span></button>
-                    <button @click="handleQuickAction('pay')" class="flex flex-col items-center gap-2 group"><div class="w-14 h-14 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xl font-bold">$</div><span class="text-sm">收費</span></button>
-                    <button @click="handleQuickAction('refund')" class="flex flex-col items-center gap-2 group"><div class="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-xl">↩️</div><span class="text-sm">退費</span></button>
-                    <button @click="handleQuickAction('addCourse')" class="flex flex-col items-center gap-2 group"><div class="w-14 h-14 rounded-full bg-cyan-100 text-cyan-700 flex items-center justify-center text-2xl font-light">+</div><span class="text-sm">新增課程</span></button>
-                    <button @click="handleQuickAction('courseDetail')" class="flex flex-col items-center gap-2 group"><div class="w-14 h-14 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xl">📘</div><span class="text-sm">課程詳情</span></button>
-                    <button @click="handleQuickAction('studentDetail')" class="flex flex-col items-center gap-2 group"><div class="w-14 h-14 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xl">👤</div><span class="text-sm">學生詳情</span></button>
-                    <button @click="handleQuickAction('schedule')" class="flex flex-col items-center gap-2 group"><div class="w-14 h-14 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xl">🗓️</div><span class="text-sm">排課</span></button>
-                </div>
-                <button @click="showQuickMenu = false" class="w-full mt-4 py-3 text-gray-500 font-medium">取消</button>
             </div>
         </div>
 
         <!-- 新增課程 Modal -->
         <div v-if="showCourseModal" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-                <h3 class="text-lg font-bold mb-4">為 {{ activeStudent?.name }} 新增課程</h3>
-                <div class="space-y-4 text-xs">
-                    <div><label class="block text-gray-500 mb-1">課程名稱</label><input v-model="newCourse.name" type="text" placeholder="例如：中四數學專科班" class="w-full px-4 py-2.5 border rounded-xl outline-none"></div>
-                    <div>
-                        <label class="block text-gray-500 mb-1">課程種類</label>
-                        <select v-model="newCourse.category" class="w-full px-4 py-2.5 border rounded-xl outline-none">
-                            <option value="專科班">專科班</option><option value="功課班">功課班</option><option value="拔尖班">拔尖班</option><option value="個別試堂">個別試堂</option>
-                        </select>
+            <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto text-xs space-y-3">
+                <h3 class="text-sm font-bold mb-2">為 {{ activeStudent?.name }} 新增課程</h3>
+                <div><label>課程名稱</label><input v-model="newCourse.name" class="w-full p-2.5 border rounded-xl" placeholder="例如：中四數學班"></div>
+                <div><label>課程種類</label><select v-model="newCourse.category" class="w-full p-2.5 border rounded-xl"><option value="專科班">專科班</option><option value="功課班">功課班</option></select></div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label>學費 (HK$)</label><input v-model.number="newCourse.price" type="number" class="w-full p-2.5 border rounded-xl"></div>
+                    <div><label>總堂數</label><input v-model.number="newCourse.totalLessons" type="number" class="w-full p-2.5 border rounded-xl"></div>
+                </div>
+                <div class="p-3 bg-blue-50 rounded-xl space-y-2">
+                    <label class="font-bold text-blue-800">🔄 批次排課（每星期幾重複）</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input v-model="recurStart" type="date" class="p-2 border rounded-xl bg-white">
+                        <input v-model="recurEnd" type="date" class="p-2 border rounded-xl bg-white">
                     </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div><label class="block text-gray-500 mb-1">學費價格 (HK$)</label><input v-model.number="newCourse.price" type="number" class="w-full px-4 py-2.5 border rounded-xl outline-none font-bold text-teal-700"></div>
-                        <div><label class="block text-gray-500 mb-1">總堂數</label><input v-model.number="newCourse.totalLessons" type="number" min="1" class="w-full px-4 py-2.5 border rounded-xl outline-none"></div>
+                    <div class="flex gap-1 flex-wrap">
+                        <button type="button" v-for="d in daysOfWeekMap" :key="d.val" @click="toggleRecurDay(d.val)" class="px-2 py-1 rounded border text-[11px]" :class="recurDays.includes(d.val)?'bg-blue-600 text-white':'bg-white'">{{ d.label }}</button>
                     </div>
-
-                    <div class="p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
-                        <label class="block font-bold text-blue-800 mb-2">🔄 每星期幾重複上課 (可多選)</label>
-                        <div class="grid grid-cols-2 gap-2 mb-3">
-                            <div><label class="text-[10px] text-gray-500">開始日期</label><input v-model="recurStart" type="date" class="w-full p-2 border rounded-xl bg-white"></div>
-                            <div><label class="text-[10px] text-gray-500">結束日期</label><input v-model="recurEnd" type="date" class="w-full p-2 border rounded-xl bg-white"></div>
-                        </div>
-                        <div class="flex flex-wrap gap-1.5 mb-3">
-                            <button type="button" v-for="d in daysOfWeekMap" :key="d.val" @click="toggleRecurDay(d.val)" class="px-2.5 py-1.5 rounded-lg font-semibold border transition" :class="recurDays.includes(d.val)?'bg-blue-600 text-white border-blue-600':'bg-white text-gray-700'">{{ d.label }}</button>
-                        </div>
-                        <button type="button" @click="generateRecurringDates" class="w-full py-2 bg-blue-600 text-white rounded-xl font-bold shadow-xs">✨ 自動生成排課日期</button>
-                    </div>
-
-                    <div>
-                        <label class="block text-gray-500 mb-1">已排排課日期</label>
-                        <div class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-2 border rounded-xl bg-gray-50">
-                            <span v-for="(d, idx) in newCourse.dates" :key="idx" class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-lg flex items-center gap-1">
-                                {{ d }} <button @click="newCourse.dates.splice(idx, 1)" class="text-rose-500 font-bold ml-1">×</button>
-                            </span>
-                        </div>
+                    <button type="button" @click="generateRecurringDates" class="w-full py-2 bg-blue-600 text-white rounded-xl font-bold">自動生成日期</button>
+                </div>
+                <div>
+                    <label>已排日期：</label>
+                    <div class="flex flex-wrap gap-1 max-h-20 overflow-y-auto p-2 bg-gray-50 border rounded-xl">
+                        <span v-for="(d, i) in newCourse.dates" :key="i" class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px]">{{ d }}</span>
                     </div>
                 </div>
-                <div class="flex justify-end gap-3 mt-6">
-                    <button @click="showCourseModal = false" class="px-4 py-2 border rounded-xl text-sm">取消</button>
-                    <button @click="saveNewCourse" class="px-6 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium">儲存課程</button>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button @click="showCourseModal = false" class="px-4 py-2 border rounded-xl">取消</button>
+                    <button @click="saveNewCourse" class="px-6 py-2 bg-blue-600 text-white rounded-xl font-bold">儲存</button>
                 </div>
             </div>
         </div>
 
-        <!-- 收費精靈 Modal -->
-        <div v-if="showFeeModal" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-                <div class="flex justify-between items-center mb-4 pb-3 border-b"><h3 class="text-lg font-bold">💰 收費精靈 - {{ activeStudent?.name }}</h3><button @click="showFeeModal = false">✕</button></div>
-                <div v-if="feeStep === 1">
-                    <h4 class="text-sm font-bold mb-2">選擇課程：</h4>
-                    <div class="space-y-2 mb-6">
-                        <label v-for="c in activeStudent?.courses" :key="c.id" class="flex items-center justify-between p-3.5 rounded-xl border cursor-pointer" :class="selectedFeeCourse === c ? 'border-teal-500 bg-teal-50/50' : 'border-gray-200'">
-                            <div class="flex items-center gap-3"><input type="radio" v-model="selectedFeeCourse" :value="c" class="w-4 h-4"><div><div class="font-bold text-sm">{{ c.name }}</div><div class="text-xs text-gray-500">學費：HK${{ c.price }}</div></div></div>
-                        </label>
-                    </div>
-                    <div class="flex justify-end"><button @click="if(selectedFeeCourse) { feeForm.amount = selectedFeeCourse.price; feeStep = 2; }" class="px-6 py-2 bg-teal-600 text-white rounded-xl text-sm">下一步</button></div>
-                </div>
-                <div v-if="feeStep === 2" class="space-y-3 text-xs">
-                    <div><label>繳費內容</label><input v-model="feeForm.content" class="w-full p-2.5 border rounded-xl"></div>
-                    <div><label>收費金額 (HK$)</label><input v-model.number="feeForm.amount" type="number" class="w-full p-2.5 border rounded-xl font-bold"></div>
-                    <div><label>繳費方式</label><input v-model="feeForm.method" placeholder="現金/轉數快" class="w-full p-2.5 border rounded-xl"></div>
-                    <div><label>備註</label><input v-model="feeForm.note" class="w-full p-2.5 border rounded-xl"></div>
-                    <div class="flex justify-between pt-2"><button @click="feeStep = 1" class="px-4 py-2 border rounded-xl">上一步</button><button @click="feeStep = 3" class="px-6 py-2 bg-teal-600 text-white rounded-xl">下一步</button></div>
-                </div>
-                <div v-if="feeStep === 3" class="space-y-3 text-xs">
-                    <div><label>繳費日期</label><input v-model="feeForm.date" type="date" class="w-full p-2.5 border rounded-xl font-semibold"></div>
-                    <div class="flex justify-between pt-2"><button @click="feeStep = 2" class="px-4 py-2 border rounded-xl">上一步</button><button @click="confirmFeePayment" class="px-6 py-2 bg-teal-600 text-white rounded-xl font-bold">確認收費</button></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 學生詳情面板 Modal -->
+        <!-- 學生詳情 Modal -->
         <div v-if="showStudentDetailModal && activeStudent" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-                <div class="flex justify-between items-center pb-4 border-b">
-                    <div class="flex items-center gap-4">
-                        <div class="w-16 h-16 rounded-full bg-teal-50 flex items-center justify-center text-2xl font-bold text-teal-700">{{ activeStudent.name ? activeStudent.name.charAt(0) : '學' }}</div>
-                        <div><h3 class="text-xl font-bold">{{ activeStudent.name }} <span class="text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-700">{{ activeStudent.grade }}</span></h3><p class="text-xs text-gray-500">📞 {{ activeStudent.phone || '無電話' }} | 🏫 {{ activeStudent.school || '無學校' }}</p></div>
-                    </div>
-                    <button @click="showStudentDetailModal = false" class="text-gray-400">✕</button>
+            <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl text-xs space-y-3">
+                <h3 class="text-base font-bold">{{ activeStudent.name }} 的課程與繳費</h3>
+                <div v-for="c in activeStudent.courses" :key="c.id" class="p-3 border rounded-xl bg-gray-50 space-y-1">
+                    <div class="flex justify-between font-bold"><span>{{ c.name }}</span><span :class="c.isPaid?'text-emerald-600':'text-rose-500'">{{ c.isPaid?'已繳費':'待繳費' }}</span></div>
+                    <div>學費：HK${{ c.price }} | 堂數：{{ c.dates.length }} 堂</div>
                 </div>
-                <div class="space-y-3 mt-4 text-xs">
-                    <div v-for="c in activeStudent.courses" :key="c.id" class="p-4 rounded-2xl border bg-gray-50 space-y-2">
-                        <div class="flex justify-between"><h4 class="font-bold text-sm">{{ c.name }} [{{ c.category || '專科班' }}]</h4><span class="px-2 py-0.5 rounded font-bold" :class="c.isPaid?'bg-emerald-100 text-emerald-700':'bg-amber-100 text-amber-800'">{{ c.isPaid?'已繳費':'待繳費' }}</span></div>
-                        <p class="text-gray-500">學費：HK${{ c.price }} | 總堂數：{{ c.dates.length }}/{{ c.totalLessons }}</p>
-                    </div>
-                </div>
-                <button @click="showStudentDetailModal = false" class="w-full mt-6 py-2.5 bg-gray-100 rounded-xl text-sm font-medium">關閉面板</button>
-            </div>
-        </div>
-
-        <!-- 補課 Modal -->
-        <div v-if="showMakeupModal" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl">
-                <h3 class="text-lg font-bold mb-4">🕒 補課精靈</h3>
-                <div v-if="makeupStep === 1">
-                    <div v-if="pendingLeaves.length > 0" class="space-y-2 mb-4">
-                        <label v-for="(l, i) in pendingLeaves" :key="i" class="flex items-center gap-2 p-3 border rounded-xl cursor-pointer">
-                            <input type="radio" v-model="selectedLeaveToMakeup" :value="l"> <div><div class="font-bold">{{ l.courseName }}</div><div class="text-xs text-rose-600">待補日：{{ l.date }}</div></div>
-                        </label>
-                    </div>
-                    <div v-else class="text-center text-gray-400 py-6">無待補堂紀錄</div>
-                    <div class="flex justify-end gap-2"><button @click="showMakeupModal = false" class="px-4 py-2 border rounded-xl text-xs">取消</button><button @click="if(selectedLeaveToMakeup) makeupStep = 2" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs">下一步</button></div>
-                </div>
-                <div v-if="makeupStep === 2">
-                    <label class="block text-xs text-gray-500 mb-1">選擇補課日期</label>
-                    <input v-model="makeupTargetDate" type="date" class="w-full p-2.5 border rounded-xl mb-4 font-semibold">
-                    <div class="flex justify-between"><button @click="makeupStep = 1" class="px-4 py-2 border rounded-xl text-xs">上一步</button><button @click="confirmMakeup" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold">確認完成</button></div>
-                </div>
+                <button @click="showStudentDetailModal = false" class="w-full py-2 bg-gray-100 rounded-xl font-bold">關閉</button>
             </div>
         </div>
 
@@ -344,20 +263,7 @@
 
                 const showQuickMenu = ref(false)
                 const showCourseModal = ref(false)
-                const showDetailModal = ref(false)
-                const showStudentEditModal = ref(false)
-                const showMakeupModal = ref(false)
                 const showStudentDetailModal = ref(false)
-                const showFeeModal = ref(false)
-
-                const makeupStep = ref(1)
-                const pendingLeaves = ref([])
-                const selectedLeaveToMakeup = ref(null)
-                const makeupTargetDate = ref(todayDate)
-
-                const feeStep = ref(1)
-                const selectedFeeCourse = ref(null)
-                const feeForm = ref({ content: '學費', amount: 0, method: '', note: '', date: todayDate })
 
                 const activeStudent = ref(null)
                 const newCourse = ref({ name: '', category: '專科班', price: 1000, totalLessons: 8, dates: [todayDate], isPaid: false, attendanceOverrides: {} })
@@ -375,10 +281,8 @@
 
                 onMounted(() => {
                     try {
-                        const saved = localStorage.getItem('tutoring_students_v8')
-                        if (saved) {
-                            students.value = JSON.parse(saved)
-                        }
+                        const saved = localStorage.getItem('tutoring_system_v9')
+                        if (saved) students.value = JSON.parse(saved)
                     } catch (e) {
                         students.value = []
                     }
@@ -386,7 +290,7 @@
 
                 watch(students, (val) => {
                     try {
-                        localStorage.setItem('tutoring_students_v8', JSON.stringify(val))
+                        localStorage.setItem('tutoring_system_v9', JSON.stringify(val))
                     } catch (e) {}
                 }, { deep: true })
 
@@ -416,38 +320,15 @@
                     } else if (action === 'leave') {
                         student.courses.forEach(c => { if (!c.dates.includes(todayDate)) c.dates.push(todayDate); c.attendanceOverrides[todayDate] = '待補堂'; })
                         alert(`已將 ${student.name} 標記為待補堂！`)
-                    } else if (action === 'makeup') {
-                        pendingLeaves.value = []
-                        student.courses.forEach(c => {
-                            Object.keys(c.attendanceOverrides).forEach(d => {
-                                if (c.attendanceOverrides[d] === '待補堂') pendingLeaves.value.push({ courseId: c.id, courseName: c.name, date: d, courseRef: c })
-                            })
-                        })
-                        makeupStep.value = 1
-                        selectedLeaveToMakeup.value = null
-                        showMakeupModal.value = true
                     } else if (action === 'pay') {
-                        if (student.courses.length === 0) return alert('無課程！')
-                        selectedFeeCourse.value = student.courses[0]
-                        feeStep.value = 1
-                        feeForm.value = { content: '學費', amount: selectedFeeCourse.value.price, method: '', note: '', date: todayDate }
-                        showFeeModal.value = true
-                    } else if (action === 'refund') {
-                        student.courses.forEach(c => c.isPaid = false)
-                        alert('已重設繳費狀態！')
+                        if (student.courses.length === 0) return alert('無課程可收費！')
+                        student.courses[0].isPaid = true
+                        alert('已確認收費！')
                     } else if (action === 'addCourse') {
                         newCourse.value = { name: '', category: '專科班', price: 1000, totalLessons: 8, dates: [todayDate], isPaid: false, attendanceOverrides: {} }
                         showCourseModal.value = true
                     } else if (action === 'studentDetail') {
                         showStudentDetailModal.value = true
-                    }
-                }
-
-                const confirmFeePayment = () => {
-                    if (selectedFeeCourse.value) {
-                        selectedFeeCourse.value.isPaid = true
-                        showFeeModal.value = false
-                        alert(`成功收費 HK$${feeForm.value.amount}！`)
                     }
                 }
 
@@ -468,22 +349,13 @@
                         curr.setDate(curr.getDate() + 1)
                     }
                     newCourse.value.dates = generated
-                    alert(`成功自動生成 ${generated.length} 個上課日期！`)
+                    alert(`成功生成 ${generated.length} 個上課日期！`)
                 }
 
                 const saveNewCourse = () => {
-                    if (!newCourse.value.name || !newCourse.value.name.trim()) return alert('請輸入名稱')
+                    if (!newCourse.value.name || !newCourse.value.name.trim()) return alert('請輸入課程名稱')
                     activeStudent.value.courses.push({ id: Date.now(), ...JSON.parse(JSON.stringify(newCourse.value)) })
                     showCourseModal.value = false
-                }
-
-                const confirmMakeup = () => {
-                    if (!selectedLeaveToMakeup.value) return
-                    const course = selectedLeaveToMakeup.value.courseRef
-                    delete course.attendanceOverrides[selectedLeaveToMakeup.value.date]
-                    if (!course.dates.includes(makeupTargetDate.value)) course.dates.push(makeupTargetDate.value)
-                    showMakeupModal.value = false
-                    alert('補課排程成功！')
                 }
 
                 const currentDayLessons = computed(() => {
@@ -491,7 +363,7 @@
                     students.value.forEach(s => {
                         s.courses.forEach(c => {
                             if (c.dates.includes(selectedDate.value)) {
-                                list.push({ courseId: c.id, studentName: s.name, grade: s.grade, courseName: c.name, category: c.category || '專科班', status: c.attendanceOverrides[selectedDate.value] || '出席', courseRef: c, studentRef: s })
+                                list.push({ courseId: c.id, studentName: s.name, grade: s.grade, courseName: c.name, category: c.category || '專科班', status: c.attendanceOverrides[selectedDate.value] || '出席', courseRef: c })
                             }
                         })
                     })
@@ -499,7 +371,7 @@
                 })
 
                 const toggleAttendance = (item) => {
-                    const cur = item.courseRef.attendanceOverrides[selectedDate.value] || '出席'
+                    const cur = item.status
                     if (cur === '出席') item.courseRef.attendanceOverrides[selectedDate.value] = '待補堂'
                     else delete item.courseRef.attendanceOverrides[selectedDate.value]
                 }
@@ -543,7 +415,7 @@
                                 const w = new Date(dStr).getDay()
                                 const t = daysMap.find(d => d.id === w)
                                 if (t && !t.students.some(x => x.studentName === s.name && x.courseName === c.name)) {
-                                    t.students.push({ studentName: s.name, grade: s.grade, courseName: c.name, category: c.category || '專科班' })
+                                    t.students.push({ studentName: s.name, courseName: c.name })
                                 }
                             })
                         })
@@ -557,9 +429,7 @@
                         s.courses.forEach(c => {
                             const cat = c.category || '專科班'
                             if (!groups[cat]) groups[cat] = []
-                            if (!groups[cat].some(x => x.studentName === s.name && x.courseName === c.name)) {
-                                groups[cat].push({ studentName: s.name, grade: s.grade, courseName: c.name, isPaid: c.isPaid })
-                            }
+                            groups[cat].push({ studentName: s.name, courseName: c.name, isPaid: c.isPaid })
                         })
                     })
                     return Object.keys(groups).map(name => ({ name, students: groups[name] }))
@@ -573,27 +443,20 @@
                             if (filteredDates.length > maxDates) maxDates = filteredDates.length
                         })
                     })
-
                     if (maxDates === 0) return alert('該月份沒有任何上課紀錄！')
 
                     let header = "姓名,班級,課堂種類,課堂名稱"
-                    for (let i = 1; i <= maxDates; i++) {
-                        header += `,上課日期${i}`
-                    }
+                    for (let i = 1; i <= maxDates; i++) header += `,上課日期${i}`
                     header += ",繳費狀態,繳費金額\n"
 
                     let csv = "\uFEFF" + header
-
                     students.value.forEach(s => {
                         s.courses.forEach(c => {
                             const filteredDates = c.dates.filter(d => d.startsWith(exportMonth.value))
                             if (filteredDates.length > 0) {
                                 let row = `"${s.name}","${s.grade}","${c.category || '專科班'}","${c.name}"`
-                                for (let i = 0; i < maxDates; i++) {
-                                    row += `,"${filteredDates[i] || ''}"`
-                                }
-                                const paidStatus = c.isPaid ? '已繳費' : '待繳費'
-                                row += `,"${paidStatus}","${c.price}"\n`
+                                for (let i = 0; i < maxDates; i++) row += `,"${filteredDates[i] || ''}"`
+                                row += `,"${c.isPaid ? '已繳費' : '待繳費'}","${c.price}"\n`
                                 csv += row
                             }
                         })
@@ -608,15 +471,14 @@
                 }
 
                 return {
-                    currentTab: ref('students'), students, newStudent, todayDate, selectedDate, exportMonth,
-                    showQuickMenu, showCourseModal, showDetailModal, showStudentEditModal, showMakeupModal, showStudentDetailModal, showFeeModal,
-                    makeupStep, pendingLeaves, selectedLeaveToMakeup, makeupTargetDate,
-                    feeStep, selectedFeeCourse, feeForm,
+                    currentTab, students, todayDate, selectedDate, exportMonth,
+                    newStudent, showQuickMenu, showCourseModal, showStudentDetailModal,
                     activeStudent, newCourse, recurStart, recurEnd, recurDays, daysOfWeekMap,
                     currentYear, currentMonth, daysInMonth, firstDayOfWeek, changeMonth, getLogsByMonthDate,
                     currentDayLessons, weekDaysList, categoryGroups,
-                    addStudent, removeStudent, openQuickMenu, handleQuickAction, confirmFeePayment, toggleRecurDay, generateRecurringDates,
-                    confirmMakeup, saveNewCourse, shiftDate, toggleAttendance, exportToCSV
+                    addStudent, removeStudent, openQuickMenu, handleQuickAction,
+                    toggleRecurDay, generateRecurringDates, saveNewCourse,
+                    shiftDate, toggleAttendance, exportToCSV
                 }
             }
         }).mount('#app')
