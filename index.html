@@ -8,6 +8,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Vue.js 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        @media print {
+            body * { visibility: hidden; }
+            #printable-receipt, #printable-receipt * { visibility: visible; }
+            #printable-receipt { position: absolute; left: 0; top: 0; width: 100%; border: none; box-shadow: none; }
+        }
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
     <div id="app" class="max-w-6xl mx-auto p-4 sm:p-6">
@@ -15,8 +22,8 @@
         <!-- 頂部標題與頁籤 -->
         <header class="mb-6 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">📚 補習社點名與學費管理</h1>
-                <p class="text-sm text-gray-500 mt-1">智慧排課、多步驟收費、學生詳情面板與上堂月曆</p>
+                <h1 class="text-2xl font-bold text-gray-900">📚 補習社點名與學費管理系統</h1>
+                <p class="text-sm text-gray-500 mt-1">智慧排課、收費精靈、財務儀表板、WhatsApp 催繳與電子收據</p>
             </div>
             
             <div class="flex flex-wrap bg-gray-100 p-1 rounded-xl gap-1">
@@ -25,6 +32,9 @@
                 </button>
                 <button @click="currentTab = 'daily'" :class="currentTab === 'daily' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition">
                     📅 每日點名
+                </button>
+                <button @click="currentTab = 'financeDash'" :class="currentTab === 'financeDash' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition">
+                    💰 財務與欠費
                 </button>
                 <button @click="currentTab = 'monthCalendar'" :class="currentTab === 'monthCalendar' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition">
                     🗓️ 上堂月曆
@@ -129,6 +139,9 @@
                         </div>
 
                         <div class="flex items-center gap-1">
+                            <button v-if="student.phone" @click.stop="sendWhatsAppGeneral(student)" title="WhatsApp 聯繫家長" class="text-emerald-600 hover:bg-emerald-50 p-2 rounded-xl transition text-sm font-bold flex items-center gap-1">
+                                💬 WhatsApp
+                            </button>
                             <button @click="editStudentProfile(student)" title="編輯資料" class="text-gray-400 hover:text-blue-600 p-2 transition">✏️</button>
                             <button @click="removeStudentById(student.id)" title="刪除學生" class="text-gray-300 hover:text-rose-600 p-2 transition">🗑️</button>
                         </div>
@@ -174,11 +187,16 @@
                                 <p class="text-xs text-gray-600 mt-1">課程：<strong class="text-blue-600">{{ item.courseName }}</strong></p>
                             </div>
 
-                            <button @click="toggleAttendance(item)" 
-                                    class="px-4 py-2 rounded-xl text-sm font-bold transition shadow-xs self-end sm:self-center"
-                                    :class="item.status === '待補堂' ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'">
-                                {{ item.status === '待補堂' ? '❌ 待補堂 (請假)' : '✅ 出席 (自動點名)' }}
-                            </button>
+                            <div class="flex items-center gap-2 self-end sm:self-center">
+                                <button v-if="item.studentRef.phone" @click="sendWhatsAppReminderDaily(item)" class="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-bold transition flex items-center gap-1">
+                                    💬 傳送上課提醒
+                                </button>
+                                <button @click="toggleAttendance(item)" 
+                                        class="px-4 py-2 rounded-xl text-sm font-bold transition shadow-xs"
+                                        :class="item.status === '待補堂' ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'">
+                                    {{ item.status === '待補堂' ? '❌ 待補堂 (請假)' : '✅ 出席 (自動點名)' }}
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -189,7 +207,85 @@
             </div>
         </main>
 
-        <!-- 頁籤三：上堂月曆檢視 -->
+        <!-- 頁籤三：財務與欠費總覽儀表板 (新增功能) -->
+        <main v-if="currentTab === 'financeDash'">
+            <div class="space-y-6">
+                <!-- 頂部月份篩選與統計卡片 -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900">💰 財務與欠費總覽儀表板</h2>
+                        <p class="text-xs text-gray-500 mt-0.5">即時掌握本月實收學費、欠費名單與待補堂統計</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-500 font-medium">統計月份：</span>
+                        <input v-model="financeMonth" type="month" class="px-3.5 py-2 border rounded-xl outline-none font-semibold text-sm">
+                    </div>
+                </div>
+
+                <!-- 統計數據卡片 -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">本月實收學費 ({{ financeMonth }})</p>
+                            <h3 class="text-2xl font-black text-teal-600 mt-1">HK${{ totalCollectedThisMonth }}</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center text-xl font-bold">💵</div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">全體待收學費 (欠費)</p>
+                            <h3 class="text-2xl font-black text-rose-600 mt-1">HK${{ totalPendingAmount }}</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl font-bold">⚠️</div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">全體待補堂總人次</p>
+                            <h3 class="text-2xl font-black text-blue-600 mt-1">{{ totalPendingLeavesCount }} 堂</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl font-bold">🕒</div>
+                    </div>
+                </div>
+
+                <!-- 待收學費學生清單 -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span>⚠️ 尚有未繳費課程的學生名單</span>
+                        <span class="px-2 py-0.5 rounded-full text-xs bg-rose-100 text-rose-700 font-bold">{{ unpaidCoursesList.length }} 筆</span>
+                    </h3>
+
+                    <div v-if="unpaidCoursesList.length > 0" class="space-y-3">
+                        <div v-for="item in unpaidCoursesList" :key="item.student.id + '-' + item.course.id" class="p-4 rounded-xl border border-rose-100 bg-rose-50/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-gray-900 text-base">{{ item.student.name }}</span>
+                                    <span class="text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-700">{{ item.student.grade }}</span>
+                                    <span class="text-xs text-gray-500">📞 {{ item.student.phone || '無電話' }}</span>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-1">
+                                    欠費課程：<strong class="text-rose-600">{{ item.course.name }}</strong> (學費：HK${{ item.course.price }})
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button v-if="item.student.phone" @click="sendWhatsAppCollection(item.student, item.course)" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-xs">
+                                    💬 WhatsApp 催繳
+                                </button>
+                                <button @click="openFeeModalDirect(item.student, item.course)" class="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition shadow-xs">
+                                    💰 立即收費
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="p-8 text-center text-gray-400 bg-gray-50 rounded-2xl text-xs">
+                        太棒了！目前所有學生均已繳清學費。
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 頁籤四：上堂月曆檢視 -->
         <main v-if="currentTab === 'monthCalendar'">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <div class="flex items-center justify-between mb-6 pb-4 border-b">
@@ -221,7 +317,7 @@
             </div>
         </main>
 
-        <!-- 頁籤四：星期幾人數統計 -->
+        <!-- 頁籤五：星期幾人數統計 -->
         <main v-if="currentTab === 'weeklyStats'">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <h2 class="text-lg font-bold text-gray-900 mb-2">📊 每週星期幾上課人數統計</h2>
@@ -246,7 +342,7 @@
             </div>
         </main>
 
-        <!-- 頁籤五：課程種類 -->
+        <!-- 頁籤六：課程種類 -->
         <main v-if="currentTab === 'categoryStats'">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <h2 class="text-lg font-bold text-gray-900 mb-4">📁 依課程種類檢視學生</h2>
@@ -268,7 +364,7 @@
             </div>
         </main>
 
-        <!-- 頁籤六：匯出與資料備份 -->
+        <!-- 頁籤七：匯出與資料備份 -->
         <main v-if="currentTab === 'export'">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
                 <!-- 左側：匯出每月點名紙 CSV -->
@@ -450,7 +546,7 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- 退費 Modal (打通退費紀錄) -->
+        <!-- 退費 Modal -->
         <!-- ========================================== -->
         <div v-if="showRefundModal && activeStudent" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl">
@@ -510,7 +606,8 @@
                 <div class="flex flex-wrap items-center gap-2 my-4 py-2 border-b text-xs">
                     <span class="px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 font-semibold">進行中 {{ activeStudent.courses.length }}</span>
                     <button @click="promptAddNote" class="px-3 py-1.5 rounded-xl border bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium">+ 新增備註</button>
-                    <button @click="copyCourseSummary" class="px-3 py-1.5 rounded-xl border bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium">📋 複製時間表給家長</button>
+                    <button @click="copyCourseSummary" class="px-3 py-1.5 rounded-xl border bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium">📋 複製時間表</button>
+                    <button v-if="activeStudent.phone" @click="sendWhatsAppGeneral(activeStudent)" class="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold">💬 WhatsApp</button>
                 </div>
 
                 <!-- 已儲存的學生備註區 -->
@@ -527,7 +624,7 @@
                 <!-- 標籤頁籤：課程 / 收支 / 紀錄 -->
                 <div class="flex bg-gray-100 p-1 rounded-xl mb-4 text-xs font-semibold">
                     <button @click="detailTab = 'courses'" :class="detailTab === 'courses' ? 'bg-white text-teal-700 shadow-xs' : 'text-gray-600'" class="flex-1 py-2 rounded-lg transition">📚 課程</button>
-                    <button @click="detailTab = 'finance'" :class="detailTab === 'finance' ? 'bg-white text-teal-700 shadow-xs' : 'text-gray-600'" class="flex-1 py-2 rounded-lg transition">💲 收支明細</button>
+                    <button @click="detailTab = 'finance'" :class="detailTab === 'finance' ? 'bg-white text-teal-700 shadow-xs' : 'text-gray-600'" class="flex-1 py-2 rounded-lg transition">💲 收支明細與收據</button>
                     <button @click="detailTab = 'logs'" :class="detailTab === 'logs' ? 'bg-white text-teal-700 shadow-xs' : 'text-gray-600'" class="flex-1 py-2 rounded-lg transition">🕒 上課紀錄</button>
                 </div>
 
@@ -555,7 +652,7 @@
                     <div v-if="activeStudent.courses.length === 0" class="py-8 text-center text-gray-400 text-xs">此學生無報讀課程</div>
                 </div>
 
-                <!-- 收支標籤內容 (顯示真實收費與退費流水帳) -->
+                <!-- 收支標籤內容 (支援檢視記錄並產生收據) -->
                 <div v-if="detailTab === 'finance'" class="space-y-2">
                     <div v-if="activeStudent.paymentRecords && activeStudent.paymentRecords.length > 0" class="space-y-2">
                         <div v-for="(rec, rIdx) in activeStudent.paymentRecords" :key="rIdx" class="p-3 bg-white rounded-xl border flex justify-between items-center text-xs">
@@ -565,9 +662,14 @@
                                     📅 {{ rec.date }} <span v-if="rec.method">| {{ rec.method }}</span> <span v-if="rec.note">| 備註：{{ rec.note }}</span>
                                 </div>
                             </div>
-                            <div class="text-right font-bold" :class="rec.type === 'refund' ? 'text-rose-600' : 'text-teal-600'">
-                                {{ rec.type === 'refund' ? '-HK$' : '+HK$' }}{{ rec.amount }}
-                                <span class="block text-[10px] font-normal text-gray-400">{{ rec.type === 'refund' ? '已退費' : '已收款' }}</span>
+                            <div class="flex items-center gap-3">
+                                <div class="text-right font-bold" :class="rec.type === 'refund' ? 'text-rose-600' : 'text-teal-600'">
+                                    {{ rec.type === 'refund' ? '-HK$' : '+HK$' }}{{ rec.amount }}
+                                    <span class="block text-[10px] font-normal text-gray-400">{{ rec.type === 'refund' ? '已退費' : '已收款' }}</span>
+                                </div>
+                                <button v-if="rec.type === 'income'" @click="openReceiptModal(activeStudent, rec)" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-lg text-[11px] transition">
+                                    🧾 收據
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -590,6 +692,55 @@
                 </div>
 
                 <button @click="showStudentDetailModal = false" class="w-full mt-6 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-medium text-gray-700">關閉面板</button>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 電子收據 Modal (可列印 / 存 PDF) -->
+        <!-- ========================================== -->
+        <div v-if="showReceiptModal" class="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+            <div id="printable-receipt" class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative border border-gray-100 space-y-6">
+                <!-- 頂部按鈕 (列印時隱藏) -->
+                <div class="flex justify-between items-center pb-3 border-b print:hidden">
+                    <span class="text-xs font-bold text-gray-400">電子收據預覽</span>
+                    <button @click="showReceiptModal = false" class="text-gray-400 hover:text-gray-600 text-sm font-bold">✕ 關閉</button>
+                </div>
+
+                <!-- 收據本文 -->
+                <div class="text-center space-y-1">
+                    <h2 class="text-2xl font-black text-gray-900 tracking-wider">📚 補習社學費收據</h2>
+                    <p class="text-xs text-gray-500">Official Tuition Receipt</p>
+                </div>
+
+                <div class="flex justify-between items-center text-xs text-gray-500 pt-2 border-t border-dashed">
+                    <span>收據編號：<strong class="text-gray-800">REC-{{ currentReceipt.id }}</strong></span>
+                    <span>日期：<strong class="text-gray-800">{{ currentReceipt.date }}</strong></span>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-2xl space-y-2.5 text-sm">
+                    <div class="flex justify-between"><span class="text-gray-500">學生姓名：</span><strong class="text-gray-900">{{ currentReceipt.studentName }} ({{ currentReceipt.grade }})</strong></div>
+                    <div class="flex justify-between"><span class="text-gray-500">繳費項目：</span><strong class="text-gray-900">{{ currentReceipt.content }}</strong></div>
+                    <div class="flex justify-between"><span class="text-gray-500">付款方式：</span><strong class="text-gray-900">{{ currentReceipt.method || '現金/轉帳' }}</strong></div>
+                    <div v-if="currentReceipt.note" class="flex justify-between"><span class="text-gray-500">備註說明：</span><strong class="text-gray-900">{{ currentReceipt.note }}</strong></div>
+                </div>
+
+                <div class="flex justify-between items-center p-4 bg-teal-50 border border-teal-100 rounded-2xl">
+                    <span class="text-sm font-bold text-teal-800">實收總金額 (HKD)：</span>
+                    <span class="text-2xl font-black text-teal-700">HK$ {{ currentReceipt.amount }}</span>
+                </div>
+
+                <div class="text-center pt-4 border-t border-dashed text-[11px] text-gray-400 space-y-1">
+                    <p>多謝惠顧！此收據由電腦系統自動生成，無需蓋章。</p>
+                    <p>如有任何查詢，請隨時與補習社導師聯絡。</p>
+                </div>
+
+                <!-- 操作按鈕 (列印時隱藏) -->
+                <div class="flex gap-3 pt-2 print:hidden">
+                    <button @click="showReceiptModal = false" class="flex-1 py-3 border rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">返回</button>
+                    <button @click="printReceipt" class="flex-1 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold shadow-md flex items-center justify-center gap-2">
+                        🖨️ 列印 / 儲存為 PDF
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -628,7 +779,7 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- 升級版：新增課程與智慧排課 Modal -->
+        <!-- 新增課程與智慧排課 Modal -->
         <!-- ========================================== -->
         <div v-if="showCourseModal" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -720,7 +871,7 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- 課程詳情與調整排課 Modal (支援單獨加減日期與刪除課程) -->
+        <!-- 課程詳情與調整排課 Modal -->
         <!-- ========================================== -->
         <div v-if="showDetailModal && activeStudent" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
@@ -804,6 +955,7 @@
                 const todayDate = new Date().toISOString().split('T')[0]
                 const selectedDate = ref(todayDate)
                 const exportMonth = ref(todayDate.slice(0, 7))
+                const financeMonth = ref(todayDate.slice(0, 7))
 
                 // 搜尋與篩選狀態
                 const searchQuery = ref('')
@@ -820,6 +972,9 @@
                 const showStudentDetailModal = ref(false)
                 const showFeeModal = ref(false)
                 const showRefundModal = ref(false)
+                const showReceiptModal = ref(false)
+
+                const currentReceipt = ref({ id: '', date: '', studentName: '', grade: '', content: '', amount: 0, method: '', note: '' })
 
                 const makeupStep = ref(1)
                 const pendingLeaves = ref([])
@@ -907,6 +1062,110 @@
                     })
                 })
 
+                // 財務總覽相關計算
+                const totalCollectedThisMonth = computed(() => {
+                    let total = 0
+                    students.value.forEach(s => {
+                        if (s.paymentRecords) {
+                            s.paymentRecords.forEach(rec => {
+                                if (rec.date && rec.date.startsWith(financeMonth.value)) {
+                                    if (rec.type === 'income') total += Number(rec.amount) || 0
+                                    else if (rec.type === 'refund') total -= Number(rec.amount) || 0
+                                }
+                            })
+                        }
+                    })
+                    return total
+                })
+
+                const totalPendingAmount = computed(() => {
+                    let total = 0
+                    students.value.forEach(s => {
+                        s.courses.forEach(c => {
+                            if (!c.isPaid) total += Number(c.price) || 0
+                        })
+                    })
+                    return total
+                })
+
+                const totalPendingLeavesCount = computed(() => {
+                    let count = 0
+                    students.value.forEach(s => {
+                        s.courses.forEach(c => {
+                            count += getPendingLeaveCount(c)
+                        })
+                    })
+                    return count
+                })
+
+                const unpaidCoursesList = computed(() => {
+                    const list = []
+                    students.value.forEach(s => {
+                        s.courses.forEach(c => {
+                            if (!c.isPaid) {
+                                list.push({ student: s, course: c })
+                            }
+                        })
+                    })
+                    return list
+                })
+
+                // WhatsApp 快捷傳送函數
+                const cleanPhoneNum = (phone) => {
+                    if (!phone) return ''
+                    let p = phone.replace(/\D/g, '')
+                    if (p.length === 8) p = '852' + p
+                    return p
+                }
+
+                const sendWhatsAppGeneral = (student) => {
+                    const p = cleanPhoneNum(student.phone)
+                    if (!p) return alert('此學生未填寫有效電話！')
+                    const msg = `你好 ${student.name} 家長，我是補習社導師。想跟你聯絡關於學生的學習進度及最新安排。`
+                    window.open(`https://wa.me/${p}?text=${encodeURIComponent(msg)}`, '_blank')
+                }
+
+                const sendWhatsAppCollection = (student, course) => {
+                    const p = cleanPhoneNum(student.phone)
+                    if (!p) return alert('此學生未填寫有效電話！')
+                    const msg = `你好 ${student.name} 家長，提提你：貴子弟報讀的「${course.name}」學費 HK$${course.price} 尚未繳交。請透過轉數快(FPS)或現金繳付，並將收據發回給我們確認。多謝合作！`
+                    window.open(`https://wa.me/${p}?text=${encodeURIComponent(msg)}`, '_blank')
+                }
+
+                const sendWhatsAppReminderDaily = (item) => {
+                    const p = cleanPhoneNum(item.studentRef.phone)
+                    if (!p) return alert('此學生未填寫有效電話！')
+                    const msg = `你好 ${item.studentName} 家長，提提你：今日 (${selectedDate.value}) 有「${item.courseName}」上課（時間：${item.timeSlot || '按時'}），請準時出席。`
+                    window.open(`https://wa.me/${p}?text=${encodeURIComponent(msg)}`, '_blank')
+                }
+
+                // 開啟收據 Modal
+                const openReceiptModal = (student, rec) => {
+                    currentReceipt.value = {
+                        id: rec.id,
+                        date: rec.date,
+                        studentName: student.name,
+                        grade: student.grade,
+                        content: rec.content,
+                        amount: rec.amount,
+                        method: rec.method,
+                        note: rec.note
+                    }
+                    showReceiptModal.value = true
+                }
+
+                const printReceipt = () => {
+                    window.print()
+                }
+
+                const openFeeModalDirect = (student, course) => {
+                    activeStudent.value = student
+                    selectedFeeCourse.value = course
+                    feeStep.value = 1
+                    feeForm.value = { content: course.name + ' 學費', amount: course.price, method: '轉數快 (FPS)', note: '', date: todayDate }
+                    showFeeModal.value = true
+                }
+
                 const addStudent = () => {
                     if (!newStudent.value.name.trim()) return
                     students.value.push({
@@ -939,7 +1198,7 @@
                     showQuickMenu.value = true
                 }
 
-                // 智慧生成上課日期 (支援多選每週星期幾)
+                // 智慧生成上課日期
                 const generateCourseDates = () => {
                     const count = Math.max(1, parseInt(newCourse.value.totalLessons) || 1)
                     const selectedWds = newCourse.value.weekdays
@@ -1105,7 +1364,6 @@
                     alert(`已記錄退費 HK$${refundForm.value.amount} 並重設課程為待繳費。`)
                 }
 
-                // 學生備註新增與刪除
                 const promptAddNote = () => {
                     const note = prompt('請輸入要新增給學生的備註（例如：對花生敏感、家長要求每週匯報進度）：')
                     if (note && note.trim()) {
@@ -1118,7 +1376,6 @@
                     activeStudent.value.notes.splice(idx, 1)
                 }
 
-                // 一鍵複製課程時間表文字給家長 (WhatsApp 友好)
                 const copyCourseSummary = () => {
                     const s = activeStudent.value
                     if (!s) return
@@ -1176,7 +1433,6 @@
                     showCourseModal.value = false
                 }
 
-                // 調整現有課程日期
                 const addDateToExistingCourse = (course) => {
                     if (!editCourseNewDate.value) return
                     if (!course.dates.includes(editCourseNewDate.value)) {
@@ -1239,7 +1495,6 @@
                     selectedDate.value = `${y}-${m}-${day}`
                 }
 
-                // 星期幾輔助文字
                 const getWeekdayShort = (dateStr) => {
                     const names = ['日', '一', '二', '三', '四', '五', '六']
                     const d = new Date(dateStr + 'T00:00:00')
@@ -1327,14 +1582,12 @@
                     return Object.keys(groups).map(name => ({ name, students: groups[name] }))
                 })
 
-                // 匯出 Excel / CSV 報表（按指定横向欄位格式）
                 const exportToCSV = () => {
                     const rows = []
-                    let maxDatesCount = 4 // 最少固定顯示「上課日期1 ~ 上課日期4」
+                    let maxDatesCount = 4
 
                     students.value.forEach(s => {
                         s.courses.forEach(c => {
-                            // 篩選所選月份的上課日期並排序
                             const monthDates = c.dates.filter(d => d.startsWith(exportMonth.value)).sort()
                             if (monthDates.length > 0) {
                                 if (monthDates.length > maxDatesCount) {
@@ -1364,7 +1617,6 @@
                         return alert(`在 ${exportMonth.value} 沒有找到任何排課紀錄！`)
                     }
 
-                    // 建立標題列
                     const headers = ['姓名', '班級', '課堂種類', '課堂名稱']
                     for (let i = 1; i <= maxDatesCount; i++) {
                         headers.push(`上課日期${i}`)
@@ -1396,7 +1648,6 @@
                     document.body.removeChild(link)
                 }
 
-                // JSON 完整備份匯出
                 const backupJSON = () => {
                     const dataStr = JSON.stringify(students.value, null, 2)
                     const blob = new Blob([dataStr], { type: 'application/json' })
@@ -1408,7 +1659,6 @@
                     document.body.removeChild(link)
                 }
 
-                // JSON 還原匯入
                 const restoreJSON = (event) => {
                     const file = event.target.files[0]
                     if (!file) return
@@ -1440,18 +1690,20 @@
 
                 return {
                     currentTab, students, filteredStudents, searchQuery, filterGrade, filterPayStatus,
-                    newStudent, todayDate, selectedDate, exportMonth,
-                    showQuickMenu, showCourseModal, showDetailModal, showStudentEditModal, showMakeupModal, showStudentDetailModal, showFeeModal, showRefundModal,
-                    makeupStep, pendingLeaves, selectedLeaveToMakeup, makeupTargetDate,
+                    newStudent, todayDate, selectedDate, exportMonth, financeMonth,
+                    showQuickMenu, showCourseModal, showDetailModal, showStudentEditModal, showMakeupModal, showStudentDetailModal, showFeeModal, showRefundModal, showReceiptModal,
+                    currentReceipt, makeupStep, pendingLeaves, selectedLeaveToMakeup, makeupTargetDate,
                     feeStep, selectedFeeCourse, feeForm, refundForm,
                     activeStudent, newCourse, weekdayOptions, manualNewDate, editCourseNewDate, detailTab,
                     currentYear, currentMonth, daysInMonth, firstDayOfWeek, changeMonth, getLogsByMonthDate,
                     currentDayLessons, weekDaysList, categoryGroups,
+                    totalCollectedThisMonth, totalPendingAmount, totalPendingLeavesCount, unpaidCoursesList,
                     addStudent, editStudentProfile, removeStudentById, openQuickMenu, handleQuickAction,
                     generateCourseDates, toggleNewCourseWeekday, addManualDateToNewCourse,
                     confirmFeePayment, onRefundCourseChange, confirmRefund, promptAddNote, removeNote, copyCourseSummary,
                     getPendingLeaveCount, confirmMakeup, saveNewCourse, addDateToExistingCourse, removeDateFromCourse, deleteCourse,
                     shiftDate, toggleAttendance, getWeekdayShort, getWeekdayName, formatWeekdays,
+                    sendWhatsAppGeneral, sendWhatsAppCollection, sendWhatsAppReminderDaily, openReceiptModal, printReceipt, openFeeModalDirect,
                     exportToCSV, backupJSON, restoreJSON
                 }
             }
