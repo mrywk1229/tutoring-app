@@ -55,10 +55,17 @@
         <main v-if="currentTab === 'students'">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
                 <h2 class="text-lg font-semibold mb-4">➕ 新增學生</h2>
-                <form @submit.prevent="addStudent" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <form @submit.prevent="addStudent" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">學生姓名</label>
                         <input v-model="newStudent.name" type="text" placeholder="例如：楊心玥" required class="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">性別</label>
+                        <select v-model="newStudent.gender" class="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none bg-white">
+                            <option value="male">男 (👦🏻)</option>
+                            <option value="female">女 (👧🏻)</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">所屬班級</label>
@@ -79,7 +86,7 @@
                         <label class="block text-xs text-gray-500 mb-1">所屬學校</label>
                         <input v-model="newStudent.school" type="text" placeholder="例如：某某中學" class="w-full px-4 py-2 rounded-xl border border-gray-200 outline-none">
                     </div>
-                    <div class="sm:col-span-2 lg:col-span-4 flex justify-end">
+                    <div class="sm:col-span-2 lg:col-span-5 flex justify-end">
                         <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-8 rounded-xl transition shadow-sm">
                             建立學生檔案
                         </button>
@@ -115,8 +122,8 @@
                 <div v-for="student in filteredStudents" :key="student.id" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
                     <div class="flex items-center justify-between">
                         <div @click="openQuickMenu(student)" class="flex items-center gap-3.5 cursor-pointer group flex-1">
-                            <div class="w-12 h-12 bg-teal-50 text-teal-700 font-bold rounded-full flex items-center justify-center text-lg group-hover:bg-teal-600 group-hover:text-white transition shrink-0">
-                                {{ student.name.charAt(0) }}
+                            <div class="w-12 h-12 bg-teal-50 border border-teal-200 rounded-full flex items-center justify-center text-2xl group-hover:scale-105 transition shrink-0">
+                                {{ student.gender === 'female' ? '👧🏻' : '👦🏻' }}
                             </div>
                             <div class="min-w-0 flex-1">
                                 <div class="flex flex-wrap items-center gap-2">
@@ -207,7 +214,7 @@
             </div>
         </main>
 
-        <!-- 頁籤三：財務與欠費總覽儀表板 (新增功能) -->
+        <!-- 頁籤三：財務與欠費總覽儀表板 -->
         <main v-if="currentTab === 'financeDash'">
             <div class="space-y-6">
                 <!-- 頂部月份篩選與統計卡片 -->
@@ -372,7 +379,7 @@
                     <div>
                         <h2 class="text-lg font-bold mb-2">📊 匯出每月點名紙 (Excel / CSV)</h2>
                         <p class="text-xs text-gray-500 mb-4">
-                            輸出欄位包含：姓名、班級、課堂種類、課堂名稱、上課日期1~4（及更多）、繳費狀態、繳費金額。
+                            功課班不顯示日期並按比例計算該月學費；專科班顯示日期。最下方自動附加全月總學費總計。
                         </p>
                         <label class="block text-xs text-gray-500 mb-1">選擇匯出月份：</label>
                         <input v-model="exportMonth" type="month" class="w-full px-4 py-2.5 rounded-xl border outline-none mb-4 font-semibold">
@@ -412,8 +419,8 @@
         <div v-if="showQuickMenu && activeStudent" @click.self="showQuickMenu = false" class="fixed inset-0 bg-black/50 backdrop-blur-[1px] flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
             <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl">
                 <div class="flex items-center gap-4 mb-6">
-                    <div class="w-16 h-16 rounded-full bg-teal-50 border border-teal-200 flex items-center justify-center text-2xl font-bold text-teal-700 shrink-0">
-                        {{ activeStudent.name.charAt(0) }}
+                    <div class="w-16 h-16 rounded-full bg-teal-50 border border-teal-200 flex items-center justify-center text-3xl shrink-0">
+                        {{ activeStudent.gender === 'female' ? '👧🏻' : '👦🏻' }}
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
@@ -588,8 +595,8 @@
                 <!-- 頂部資訊區 -->
                 <div class="flex items-start justify-between pb-4 border-b">
                     <div class="flex items-center gap-4">
-                        <div class="w-16 h-16 rounded-full bg-gray-100 border-2 border-teal-500/30 flex items-center justify-center text-2xl font-bold text-teal-700">
-                            {{ activeStudent.name.charAt(0) }}
+                        <div class="w-16 h-16 rounded-full bg-gray-100 border-2 border-teal-500/30 flex items-center justify-center text-3xl">
+                            {{ activeStudent.gender === 'female' ? '👧🏻' : '👦🏻' }}
                         </div>
                         <div>
                             <div class="flex items-center gap-2">
@@ -652,7 +659,7 @@
                     <div v-if="activeStudent.courses.length === 0" class="py-8 text-center text-gray-400 text-xs">此學生無報讀課程</div>
                 </div>
 
-                <!-- 收支標籤內容 (支援檢視記錄並產生收據) -->
+                <!-- 收支標籤內容 -->
                 <div v-if="detailTab === 'finance'" class="space-y-2">
                     <div v-if="activeStudent.paymentRecords && activeStudent.paymentRecords.length > 0" class="space-y-2">
                         <div v-for="(rec, rIdx) in activeStudent.paymentRecords" :key="rIdx" class="p-3 bg-white rounded-xl border flex justify-between items-center text-xs">
@@ -696,17 +703,15 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- 電子收據 Modal (可列印 / 存 PDF) -->
+        <!-- 電子收據 Modal -->
         <!-- ========================================== -->
         <div v-if="showReceiptModal" class="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
             <div id="printable-receipt" class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl relative border border-gray-100 space-y-6">
-                <!-- 頂部按鈕 (列印時隱藏) -->
                 <div class="flex justify-between items-center pb-3 border-b print:hidden">
                     <span class="text-xs font-bold text-gray-400">電子收據預覽</span>
                     <button @click="showReceiptModal = false" class="text-gray-400 hover:text-gray-600 text-sm font-bold">✕ 關閉</button>
                 </div>
 
-                <!-- 收據本文 -->
                 <div class="text-center space-y-1">
                     <h2 class="text-2xl font-black text-gray-900 tracking-wider">📚 補習社學費收據</h2>
                     <p class="text-xs text-gray-500">Official Tuition Receipt</p>
@@ -734,7 +739,6 @@
                     <p>如有任何查詢，請隨時與補習社導師聯絡。</p>
                 </div>
 
-                <!-- 操作按鈕 (列印時隱藏) -->
                 <div class="flex gap-3 pt-2 print:hidden">
                     <button @click="showReceiptModal = false" class="flex-1 py-3 border rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">返回</button>
                     <button @click="printReceipt" class="flex-1 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-bold shadow-md flex items-center justify-center gap-2">
@@ -791,7 +795,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-gray-500 mb-1">課程名稱 *</label>
-                            <input v-model="newCourse.name" type="text" placeholder="例如：中四英文專科" class="w-full px-3.5 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                            <input v-model="newCourse.name" type="text" placeholder="例如：中四英文專科 / 小學功課班" class="w-full px-3.5 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div>
                             <label class="block text-gray-500 mb-1">課程種類</label>
@@ -920,6 +924,13 @@
                     <input v-model="activeStudent.name" type="text" class="w-full p-2.5 border rounded-xl outline-none">
                 </div>
                 <div>
+                    <label class="block text-gray-500 mb-1">性別</label>
+                    <select v-model="activeStudent.gender" class="w-full p-2.5 border rounded-xl outline-none bg-white">
+                        <option value="male">男 (👦🏻)</option>
+                        <option value="female">女 (👧🏻)</option>
+                    </select>
+                </div>
+                <div>
                     <label class="block text-gray-500 mb-1">所屬班級</label>
                     <select v-model="activeStudent.grade" class="w-full p-2.5 border rounded-xl outline-none bg-white">
                         <option value="K1">K1</option><option value="K2">K2</option><option value="K3">K3</option>
@@ -957,12 +968,11 @@
                 const exportMonth = ref(todayDate.slice(0, 7))
                 const financeMonth = ref(todayDate.slice(0, 7))
 
-                // 搜尋與篩選狀態
                 const searchQuery = ref('')
                 const filterGrade = ref('')
                 const filterPayStatus = ref('')
 
-                const newStudent = ref({ name: '', grade: '中四', phone: '', school: '' })
+                const newStudent = ref({ name: '', gender: 'female', grade: '中四', phone: '', school: '' })
 
                 const showQuickMenu = ref(false)
                 const showCourseModal = ref(false)
@@ -981,18 +991,15 @@
                 const selectedLeaveToMakeup = ref(null)
                 const makeupTargetDate = ref(todayDate)
 
-                // 收費精靈狀態變數
                 const feeStep = ref(1)
                 const selectedFeeCourse = ref(null)
                 const feeForm = ref({ content: '學費', amount: 0, method: '轉數快 (FPS)', note: '', date: todayDate })
 
-                // 退費表單
                 const refundForm = ref({ courseId: null, amount: 0, note: '' })
 
                 const detailTab = ref('courses')
                 const activeStudent = ref(null)
 
-                // 星期選項 (1=一 ... 6=六, 0=日)
                 const weekdayOptions = [
                     { val: 1, label: '一' },
                     { val: 2, label: '二' },
@@ -1019,16 +1026,15 @@
                 const manualNewDate = ref(todayDate)
                 const editCourseNewDate = ref(todayDate)
 
-                // 月曆檢視相關變數
                 const currentYear = ref(new Date().getFullYear())
                 const currentMonth = ref(new Date().getMonth())
 
-                // 初始化讀取並向下相容舊資料結構
                 onMounted(() => {
                     const saved = localStorage.getItem('tutoring_students_v6')
                     if (saved) {
                         const parsed = JSON.parse(saved)
                         parsed.forEach(s => {
+                            if (!s.gender) s.gender = 'female'
                             if (!s.notes) s.notes = []
                             if (!s.paymentRecords) s.paymentRecords = []
                             if (!s.courses) s.courses = []
@@ -1046,7 +1052,6 @@
                     localStorage.setItem('tutoring_students_v6', JSON.stringify(val))
                 }, { deep: true })
 
-                // 搜尋過濾後的學生清單
                 const filteredStudents = computed(() => {
                     return students.value.filter(s => {
                         const q = searchQuery.value.trim().toLowerCase()
@@ -1062,7 +1067,6 @@
                     })
                 })
 
-                // 財務總覽相關計算
                 const totalCollectedThisMonth = computed(() => {
                     let total = 0
                     students.value.forEach(s => {
@@ -1110,7 +1114,6 @@
                     return list
                 })
 
-                // WhatsApp 快捷傳送函數
                 const cleanPhoneNum = (phone) => {
                     if (!phone) return ''
                     let p = phone.replace(/\D/g, '')
@@ -1139,7 +1142,6 @@
                     window.open(`https://wa.me/${p}?text=${encodeURIComponent(msg)}`, '_blank')
                 }
 
-                // 開啟收據 Modal
                 const openReceiptModal = (student, rec) => {
                     currentReceipt.value = {
                         id: rec.id,
@@ -1154,9 +1156,7 @@
                     showReceiptModal.value = true
                 }
 
-                const printReceipt = () => {
-                    window.print()
-                }
+                const printReceipt = () => { window.print() }
 
                 const openFeeModalDirect = (student, course) => {
                     activeStudent.value = student
@@ -1171,6 +1171,7 @@
                     students.value.push({
                         id: Date.now(),
                         name: newStudent.value.name.trim(),
+                        gender: newStudent.value.gender,
                         grade: newStudent.value.grade,
                         phone: newStudent.value.phone.trim(),
                         school: newStudent.value.school.trim(),
@@ -1178,7 +1179,7 @@
                         paymentRecords: [],
                         courses: []
                     })
-                    newStudent.value = { name: '', grade: '中四', phone: '', school: '' }
+                    newStudent.value = { name: '', gender: 'female', grade: '中四', phone: '', school: '' }
                 }
 
                 const editStudentProfile = (student) => {
@@ -1198,7 +1199,6 @@
                     showQuickMenu.value = true
                 }
 
-                // 智慧生成上課日期
                 const generateCourseDates = () => {
                     const count = Math.max(1, parseInt(newCourse.value.totalLessons) || 1)
                     const selectedWds = newCourse.value.weekdays
@@ -1315,7 +1315,6 @@
                     }
                 }
 
-                // 確認收費並寫入收支流水帳
                 const confirmFeePayment = () => {
                     if (selectedFeeCourse.value && activeStudent.value) {
                         selectedFeeCourse.value.isPaid = true
@@ -1342,7 +1341,6 @@
                     if (c) refundForm.value.amount = c.paidAmount || c.price
                 }
 
-                // 確認退費並寫入收支流水帳
                 const confirmRefund = () => {
                     const c = activeStudent.value?.courses.find(x => x.id === refundForm.value.courseId)
                     if (!c) return
@@ -1365,7 +1363,7 @@
                 }
 
                 const promptAddNote = () => {
-                    const note = prompt('請輸入要新增給學生的備註（例如：對花生敏感、家長要求每週匯報進度）：')
+                    const note = prompt('請輸入要新增給學生的備註：')
                     if (note && note.trim()) {
                         if (!activeStudent.value.notes) activeStudent.value.notes = []
                         activeStudent.value.notes.push({ text: note.trim(), date: todayDate })
@@ -1391,7 +1389,7 @@
                         })
                     }
                     if (navigator.clipboard) {
-                        navigator.clipboard.writeText(msg).then(() => alert('已複製上課時間表，可直接貼上 WhatsApp 發送給家長！'))
+                        navigator.clipboard.writeText(msg).then(() => alert('已複製上課時間表！'))
                     } else {
                         alert(msg)
                     }
@@ -1513,7 +1511,6 @@
                     return order.filter(w => wds.includes(w)).map(w => '星期' + map[w]).join('、')
                 }
 
-                // 月曆計算
                 const daysInMonth = computed(() => new Date(currentYear.value, currentMonth.value + 1, 0).getDate())
                 const firstDayOfWeek = computed(() => new Date(currentYear.value, currentMonth.value, 1).getDay())
                 const changeMonth = (delta) => {
@@ -1582,33 +1579,62 @@
                     return Object.keys(groups).map(name => ({ name, students: groups[name] }))
                 })
 
+                // 匯出 Excel / CSV (功課班不顯示日期並按比例計算學費，專科班顯示日期，最後附加全月總學費)
                 const exportToCSV = () => {
                     const rows = []
                     let maxDatesCount = 4
+                    let grandTotalCalculatedTuition = 0
 
                     students.value.forEach(s => {
                         s.courses.forEach(c => {
+                            const isHomeworkClass = (c.category === '功課班')
                             const monthDates = c.dates.filter(d => d.startsWith(exportMonth.value)).sort()
-                            if (monthDates.length > 0) {
-                                if (monthDates.length > maxDatesCount) {
-                                    maxDatesCount = monthDates.length
-                                }
-                                const formattedDates = monthDates.map(d => {
-                                    const status = c.attendanceOverrides[d] || '出席'
-                                    return status === '出席' ? d : `${d} (${status})`
-                                })
-                                const payStatusText = c.isPaid ? '已繳費' : '待繳費'
-                                const payAmountText = c.isPaid ? `HK$${c.paidAmount || c.price}` : `HK$${c.price} (未收)`
+
+                            if (isHomeworkClass) {
+                                // 功課班邏輯：不顯示日期，計算該月上堂日數並按比例算學費
+                                const monthlyLessonsCount = monthDates.length
+                                const totalLessonsOriginal = c.totalLessons || 1
+                                const basePrice = Number(c.price) || 0
+                                // 公式：學費 / 總堂數 * 該月上堂堂數
+                                const calculatedMonthTuition = Math.round((basePrice / totalLessonsOriginal) * monthlyLessonsCount)
+                                grandTotalCalculatedTuition += calculatedMonthTuition
 
                                 rows.push({
                                     name: s.name,
                                     grade: s.grade,
-                                    category: c.category || '專科班',
+                                    category: c.category,
                                     courseName: c.name,
-                                    dates: formattedDates,
-                                    payStatus: payStatusText,
-                                    payAmount: payAmountText
+                                    isHomework: true,
+                                    monthlyCount: monthlyLessonsCount,
+                                    calculatedTuition: calculatedMonthTuition,
+                                    dates: [],
+                                    payStatus: c.isPaid ? '已繳費' : '待繳費',
+                                    payAmountText: `HK$${calculatedMonthTuition} (功課班按月計算)`
                                 })
+                            } else {
+                                // 專科班 / 其他班邏輯：顯示個別日期
+                                if (monthDates.length > 0) {
+                                    if (monthDates.length > maxDatesCount) {
+                                        maxDatesCount = monthDates.length
+                                    }
+                                    const formattedDates = monthDates.map(d => {
+                                        const status = c.attendanceOverrides[d] || '出席'
+                                        return status === '出席' ? d : `${d} (${status})`
+                                    })
+                                    const tuitionVal = Number(c.price) || 0
+                                    grandTotalCalculatedTuition += tuitionVal
+
+                                    rows.push({
+                                        name: s.name,
+                                        grade: s.grade,
+                                        category: c.category || '專科班',
+                                        courseName: c.name,
+                                        isHomework: false,
+                                        dates: formattedDates,
+                                        payStatus: c.isPaid ? '已繳費' : '待繳費',
+                                        payAmountText: c.isPaid ? `HK$${c.paidAmount || c.price}` : `HK$${c.price} (未收)`
+                                    })
+                                }
                             }
                         })
                     })
@@ -1632,12 +1658,28 @@
                             `"${r.category}"`,
                             `"${r.courseName}"`
                         ]
-                        for (let i = 0; i < maxDatesCount; i++) {
-                            line.push(`"${r.dates[i] || ''}"`)
+                        if (r.isHomework) {
+                            // 功課班欄位：日期留空，並在第一欄日期或備註顯示本月堂數與計算學費
+                            for (let i = 0; i < maxDatesCount; i++) {
+                                line.push(i === 0 ? `"本月共 ${r.monthlyCount} 堂"` : `""`)
+                            }
+                            line.push(`"${r.payStatus}"`, `"HK$${r.calculatedTuition} (功課班)"`)
+                        } else {
+                            for (let i = 0; i < maxDatesCount; i++) {
+                                line.push(`"${r.dates[i] || ''}"`)
+                            }
+                            line.push(`"${r.payStatus}"`, `"${r.payAmountText}"`)
                         }
-                        line.push(`"${r.payStatus}"`, `"${r.payAmount}"`)
                         csv += line.join(',') + '\n'
                     })
+
+                    // 最後加上全月總學費統計行
+                    const totalLine = [`"【全月總學費統計】"`, `""`, `""`, `""`]
+                    for (let i = 0; i < maxDatesCount; i++) {
+                        totalLine.push(`""`)
+                    }
+                    totalLine.push(`"總計"`, `"HK$${grandTotalCalculatedTuition}"`)
+                    csv += totalLine.join(',') + '\n'
 
                     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
                     const link = document.createElement('a')
@@ -1669,6 +1711,7 @@
                             if (!Array.isArray(imported)) throw new Error('格式錯誤')
                             if (confirm(`確定匯入備份檔？這將覆蓋目前系統中的 ${students.value.length} 位學生資料（共匯入 ${imported.length} 位學生）。`)) {
                                 imported.forEach(s => {
+                                    if (!s.gender) s.gender = 'female'
                                     if (!s.notes) s.notes = []
                                     if (!s.paymentRecords) s.paymentRecords = []
                                     if (!s.courses) s.courses = []
