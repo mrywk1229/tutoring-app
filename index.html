@@ -36,9 +36,6 @@
                 <button @click="currentTab = 'financeDash'" :class="currentTab === 'financeDash' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition">
                     💰 財務與欠費
                 </button>
-                <button @click="currentTab = 'monthCalendar'" :class="currentTab === 'monthCalendar' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition">
-                    🗓️ 上堂月曆
-                </button>
                 <button @click="currentTab = 'weeklyStats'" :class="currentTab === 'weeklyStats' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600'" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition">
                     📊 星期幾人數
                 </button>
@@ -217,7 +214,6 @@
         <!-- 頁籤三：財務與欠費總覽儀表板 -->
         <main v-if="currentTab === 'financeDash'">
             <div class="space-y-6">
-                <!-- 頂部月份篩選與統計卡片 -->
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div>
                         <h2 class="text-lg font-bold text-gray-900">💰 財務與欠費總覽儀表板</h2>
@@ -229,7 +225,6 @@
                     </div>
                 </div>
 
-                <!-- 統計數據卡片 -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
                         <div>
@@ -256,7 +251,6 @@
                     </div>
                 </div>
 
-                <!-- 待收學費學生清單 -->
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <h3 class="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <span>⚠️ 尚有未繳費課程的學生名單</span>
@@ -292,42 +286,10 @@
             </div>
         </main>
 
-        <!-- 頁籤四：上堂月曆檢視 -->
-        <main v-if="currentTab === 'monthCalendar'">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <div class="flex items-center justify-between mb-6 pb-4 border-b">
-                    <h2 class="text-lg font-bold text-gray-900">🗓️ 上堂月曆 ({{ currentYear }}年 {{ currentMonth + 1 }}月)</h2>
-                    <div class="flex gap-2">
-                        <button @click="changeMonth(-1)" class="px-3 py-1.5 border rounded-xl hover:bg-gray-50 text-sm">← 上個月</button>
-                        <button @click="currentMonth = new Date().getMonth(); currentYear = new Date().getFullYear()" class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-xl text-sm">本月</button>
-                        <button @click="changeMonth(1)" class="px-3 py-1.5 border rounded-xl hover:bg-gray-50 text-sm">下個月 →</button>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-7 gap-1 text-center font-bold text-gray-500 mb-2">
-                    <div class="text-rose-500">日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div class="text-blue-500">六</div>
-                </div>
-
-                <div class="grid grid-cols-7 gap-2">
-                    <div v-for="blank in firstDayOfWeek" :key="'b-'+blank" class="h-28 bg-gray-50/30 rounded-xl"></div>
-                    <div v-for="day in daysInMonth" :key="day" class="h-28 p-2 border border-gray-100 rounded-xl bg-white flex flex-col justify-between overflow-hidden shadow-2xs">
-                        <div class="font-bold text-xs text-gray-700 text-right">{{ day }}</div>
-                        <div class="overflow-y-auto space-y-1 text-left flex-1 mt-1">
-                            <div v-for="log in getLogsByMonthDate(day)" :key="log.courseId + log.studentName" 
-                                 class="text-[10px] p-1 rounded font-medium flex items-center justify-between border"
-                                 :class="log.status === '待補堂' ? 'bg-rose-50 text-rose-700 border-rose-100' : 'bg-blue-50 text-blue-700 border-blue-100'">
-                                <span class="truncate">{{ log.studentName }} ({{ log.courseName }})</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- 頁籤五：星期幾人數統計 -->
+        <!-- 頁籤四：星期幾人數統計 (已加入依時間排序) -->
         <main v-if="currentTab === 'weeklyStats'">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <h2 class="text-lg font-bold text-gray-900 mb-2">📊 每週星期幾上課人數統計</h2>
+                <h2 class="text-lg font-bold text-gray-900 mb-2">📊 每週星期幾上課人數統計 (依上課時間排序)</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                     <div v-for="dayObj in weekDaysList" :key="dayObj.id" class="p-5 rounded-2xl border border-gray-100 bg-gray-50/50">
                         <div class="flex items-center justify-between mb-3">
@@ -338,7 +300,7 @@
                             <div v-for="s in dayObj.students" :key="s.studentName + s.courseName" class="text-xs p-2.5 bg-white rounded-xl border flex justify-between items-center">
                                 <div>
                                     <span class="font-bold">{{ s.studentName }}</span> <span class="text-gray-400">({{ s.grade }})</span>
-                                    <div class="text-blue-600">{{ s.courseName }} <span v-if="s.timeSlot" class="text-gray-400">({{ s.timeSlot }})</span></div>
+                                    <div class="text-blue-600">{{ s.courseName }} <span v-if="s.timeSlot" class="font-semibold text-amber-700">({{ s.timeSlot }})</span></div>
                                 </div>
                                 <span class="px-2 py-0.5 bg-purple-50 text-purple-600 rounded text-[10px]">{{ s.category }}</span>
                             </div>
@@ -349,7 +311,7 @@
             </div>
         </main>
 
-        <!-- 頁籤六：課程種類 -->
+        <!-- 頁籤五：課程種類 -->
         <main v-if="currentTab === 'categoryStats'">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <h2 class="text-lg font-bold text-gray-900 mb-4">📁 依課程種類檢視學生</h2>
@@ -371,7 +333,7 @@
             </div>
         </main>
 
-        <!-- 頁籤七：匯出與資料備份 -->
+        <!-- 頁籤六：匯出與資料備份 -->
         <main v-if="currentTab === 'export'">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
                 <!-- 左側：匯出每月點名紙 CSV -->
@@ -379,7 +341,7 @@
                     <div>
                         <h2 class="text-lg font-bold mb-2">📊 匯出每月點名紙 (Excel / CSV)</h2>
                         <p class="text-xs text-gray-500 mb-4">
-                            功課班不顯示日期並按比例計算該月學費；專科班顯示日期。最下方自動附加全月總學費總計。
+                            專科班按比例計算該月學費並顯示日期；功課班直接記錄該月收費且不顯示日期。下方自動統計全月總學費。
                         </p>
                         <label class="block text-xs text-gray-500 mb-1">選擇匯出月份：</label>
                         <input v-model="exportMonth" type="month" class="w-full px-4 py-2.5 rounded-xl border outline-none mb-4 font-semibold">
@@ -447,7 +409,7 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- 升級版：多步驟收費精靈 Modal -->
+        <!-- 收費精靈 Modal -->
         <!-- ========================================== -->
         <div v-if="showFeeModal" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -456,7 +418,6 @@
                     <button @click="showFeeModal = false" class="text-gray-400 hover:text-gray-600">✕</button>
                 </div>
 
-                <!-- 4 步驟指示器 -->
                 <div class="flex justify-between items-center mb-6 px-2 text-[11px] font-semibold text-gray-400">
                     <span :class="feeStep >= 1 ? 'text-teal-600 font-bold' : ''">1. 待繳項目</span> →
                     <span :class="feeStep >= 2 ? 'text-teal-600 font-bold' : ''">2. 收費內容</span> →
@@ -464,7 +425,6 @@
                     <span :class="feeStep >= 4 ? 'text-teal-600 font-bold' : ''">4. 確認內容</span>
                 </div>
 
-                <!-- 步驟 1：待繳項目選擇課程 -->
                 <div v-if="feeStep === 1">
                     <h4 class="text-sm font-bold text-gray-700 mb-2">選擇要繳費的課程：</h4>
                     <div class="space-y-2 mb-6">
@@ -487,7 +447,6 @@
                     </div>
                 </div>
 
-                <!-- 步驟 2：收費內容填寫 -->
                 <div v-if="feeStep === 2" class="space-y-4">
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">繳費內容</label>
@@ -519,7 +478,6 @@
                     </div>
                 </div>
 
-                <!-- 步驟 3：選擇繳費日期 -->
                 <div v-if="feeStep === 3" class="space-y-4">
                     <div>
                         <label class="block text-xs text-gray-500 mb-1">選擇繳費日期</label>
@@ -531,7 +489,6 @@
                     </div>
                 </div>
 
-                <!-- 步驟 4：確認收費總覽 -->
                 <div v-if="feeStep === 4" class="space-y-4">
                     <div class="p-4 bg-gray-50 rounded-2xl border space-y-3 text-sm">
                         <div class="flex justify-between pb-2 border-b"><span class="text-gray-500">選擇課程</span><span class="font-bold text-teal-700">🎓 {{ selectedFeeCourse?.name }}</span></div>
@@ -587,12 +544,10 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- 升級版：學生詳情管理面板 Modal -->
+        <!-- 學生詳情管理面板 Modal -->
         <!-- ========================================== -->
         <div v-if="showStudentDetailModal && activeStudent" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-                
-                <!-- 頂部資訊區 -->
                 <div class="flex items-start justify-between pb-4 border-b">
                     <div class="flex items-center gap-4">
                         <div class="w-16 h-16 rounded-full bg-gray-100 border-2 border-teal-500/30 flex items-center justify-center text-3xl">
@@ -609,7 +564,6 @@
                     <button @click="showStudentDetailModal = false" class="text-gray-400 hover:text-gray-600 text-lg">✕</button>
                 </div>
 
-                <!-- 快速操作按鈕列 -->
                 <div class="flex flex-wrap items-center gap-2 my-4 py-2 border-b text-xs">
                     <span class="px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 font-semibold">進行中 {{ activeStudent.courses.length }}</span>
                     <button @click="promptAddNote" class="px-3 py-1.5 rounded-xl border bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium">+ 新增備註</button>
@@ -617,7 +571,6 @@
                     <button v-if="activeStudent.phone" @click="sendWhatsAppGeneral(activeStudent)" class="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold">💬 WhatsApp</button>
                 </div>
 
-                <!-- 已儲存的學生備註區 -->
                 <div v-if="activeStudent.notes && activeStudent.notes.length > 0" class="mb-4 space-y-1.5">
                     <div v-for="(n, nIdx) in activeStudent.notes" :key="nIdx" class="p-2.5 rounded-xl bg-amber-50/70 border border-amber-100 flex items-center justify-between text-xs">
                         <div>
@@ -628,14 +581,12 @@
                     </div>
                 </div>
 
-                <!-- 標籤頁籤：課程 / 收支 / 紀錄 -->
                 <div class="flex bg-gray-100 p-1 rounded-xl mb-4 text-xs font-semibold">
                     <button @click="detailTab = 'courses'" :class="detailTab === 'courses' ? 'bg-white text-teal-700 shadow-xs' : 'text-gray-600'" class="flex-1 py-2 rounded-lg transition">📚 課程</button>
                     <button @click="detailTab = 'finance'" :class="detailTab === 'finance' ? 'bg-white text-teal-700 shadow-xs' : 'text-gray-600'" class="flex-1 py-2 rounded-lg transition">💲 收支明細與收據</button>
                     <button @click="detailTab = 'logs'" :class="detailTab === 'logs' ? 'bg-white text-teal-700 shadow-xs' : 'text-gray-600'" class="flex-1 py-2 rounded-lg transition">🕒 上課紀錄</button>
                 </div>
 
-                <!-- 課程標籤內容 -->
                 <div v-if="detailTab === 'courses'" class="space-y-3">
                     <div v-for="c in activeStudent.courses" :key="c.id" class="p-4 rounded-2xl border border-gray-100 bg-gray-50/50 space-y-2">
                         <div class="flex justify-between items-start">
@@ -659,7 +610,6 @@
                     <div v-if="activeStudent.courses.length === 0" class="py-8 text-center text-gray-400 text-xs">此學生無報讀課程</div>
                 </div>
 
-                <!-- 收支標籤內容 -->
                 <div v-if="detailTab === 'finance'" class="space-y-2">
                     <div v-if="activeStudent.paymentRecords && activeStudent.paymentRecords.length > 0" class="space-y-2">
                         <div v-for="(rec, rIdx) in activeStudent.paymentRecords" :key="rIdx" class="p-3 bg-white rounded-xl border flex justify-between items-center text-xs">
@@ -683,7 +633,6 @@
                     <div v-else class="py-8 text-center text-gray-400 text-xs">暫無收支交易紀錄</div>
                 </div>
 
-                <!-- 紀錄標籤內容 -->
                 <div v-if="detailTab === 'logs'" class="space-y-2 text-xs">
                     <div v-for="c in activeStudent.courses" :key="c.id" class="p-3 bg-white rounded-xl border space-y-1.5">
                         <div class="font-bold text-gray-800">{{ c.name }} 上課排程：</div>
@@ -824,7 +773,6 @@
                         </div>
                     </div>
 
-                    <!-- 智慧排課設定 -->
                     <div class="p-3.5 bg-blue-50/60 border border-blue-100 rounded-2xl space-y-3">
                         <div class="flex items-center justify-between">
                             <span class="font-bold text-blue-900">🗓️ 智慧重複排堂設定</span>
@@ -848,7 +796,6 @@
                             </div>
                         </div>
 
-                        <!-- 預覽與微調已生成日期 -->
                         <div>
                             <div class="flex items-center justify-between mb-1.5">
                                 <span class="text-gray-600">已生成上課日期 ({{ newCourse.dates.length }} 堂)：</span>
@@ -892,7 +839,6 @@
                         <button @click="deleteCourse(cIdx)" class="text-rose-500 hover:text-rose-700 px-2 py-1 rounded bg-rose-50">刪除課程</button>
                     </div>
 
-                    <!-- 手動加堂 -->
                     <div class="flex items-center gap-2 pt-1">
                         <input v-model="editCourseNewDate" type="date" class="px-2.5 py-1.5 border rounded-xl bg-white outline-none">
                         <button @click="addDateToExistingCourse(c)" class="px-3 py-1.5 bg-blue-600 text-white rounded-xl font-medium">+ 新增上課日</button>
@@ -1025,9 +971,6 @@
                 })
                 const manualNewDate = ref(todayDate)
                 const editCourseNewDate = ref(todayDate)
-
-                const currentYear = ref(new Date().getFullYear())
-                const currentMonth = ref(new Date().getMonth())
 
                 onMounted(() => {
                     const saved = localStorage.getItem('tutoring_students_v6')
@@ -1511,33 +1454,7 @@
                     return order.filter(w => wds.includes(w)).map(w => '星期' + map[w]).join('、')
                 }
 
-                const daysInMonth = computed(() => new Date(currentYear.value, currentMonth.value + 1, 0).getDate())
-                const firstDayOfWeek = computed(() => new Date(currentYear.value, currentMonth.value, 1).getDay())
-                const changeMonth = (delta) => {
-                    currentMonth.value += delta
-                    if (currentMonth.value > 11) { currentMonth.value = 0; currentYear.value++; }
-                    else if (currentMonth.value < 0) { currentMonth.value = 11; currentYear.value--; }
-                }
-                const getLogsByMonthDate = (day) => {
-                    const mStr = String(currentMonth.value + 1).padStart(2, '0')
-                    const dStr = String(day).padStart(2, '0')
-                    const qStr = `${currentYear.value}-${mStr}-${dStr}`
-                    const res = []
-                    students.value.forEach(s => {
-                        s.courses.forEach(c => {
-                            if (c.dates.includes(qStr)) {
-                                res.push({
-                                    studentName: s.name,
-                                    courseName: c.name,
-                                    courseId: c.id,
-                                    status: c.attendanceOverrides[qStr] || '出席'
-                                })
-                            }
-                        })
-                    })
-                    return res
-                }
-
+                // 星期幾人數統計 (已加入依 timeSlot 排序)
                 const weekDaysList = computed(() => {
                     const daysMap = [
                         { id: 1, name: '星期一', students: [] }, { id: 2, name: '星期二', students: [] },
@@ -1562,6 +1479,14 @@
                             })
                         })
                     })
+                    // 每一日內按 timeSlot 排序
+                    daysMap.forEach(dObj => {
+                        dObj.students.sort((a, b) => {
+                            const tA = a.timeSlot ? a.timeSlot.slice(0, 5) : '99:99'
+                            const tB = b.timeSlot ? b.timeSlot.slice(0, 5) : '99:99'
+                            return tA.localeCompare(tB)
+                        })
+                    })
                     return daysMap
                 })
 
@@ -1579,7 +1504,7 @@
                     return Object.keys(groups).map(name => ({ name, students: groups[name] }))
                 })
 
-                // 匯出 Excel / CSV (功課班不顯示日期並按比例計算學費，專科班顯示日期，最後附加全月總學費)
+                // 匯出 Excel / CSV (專科班按比例計算該月學費並顯示日期；功課班直接記錄該月收費且不顯示日期)
                 const exportToCSV = () => {
                     const rows = []
                     let maxDatesCount = 4
@@ -1591,13 +1516,9 @@
                             const monthDates = c.dates.filter(d => d.startsWith(exportMonth.value)).sort()
 
                             if (isHomeworkClass) {
-                                // 功課班邏輯：不顯示日期，計算該月上堂日數並按比例算學費
-                                const monthlyLessonsCount = monthDates.length
-                                const totalLessonsOriginal = c.totalLessons || 1
-                                const basePrice = Number(c.price) || 0
-                                // 公式：學費 / 總堂數 * 該月上堂堂數
-                                const calculatedMonthTuition = Math.round((basePrice / totalLessonsOriginal) * monthlyLessonsCount)
-                                grandTotalCalculatedTuition += calculatedMonthTuition
+                                // 功課班邏輯：不用計算，直接記錄該月設定收費
+                                const homeworkFee = Number(c.price) || 0
+                                grandTotalCalculatedTuition += homeworkFee
 
                                 rows.push({
                                     name: s.name,
@@ -1605,14 +1526,12 @@
                                     category: c.category,
                                     courseName: c.name,
                                     isHomework: true,
-                                    monthlyCount: monthlyLessonsCount,
-                                    calculatedTuition: calculatedMonthTuition,
+                                    calculatedTuition: homeworkFee,
                                     dates: [],
-                                    payStatus: c.isPaid ? '已繳費' : '待繳費',
-                                    payAmountText: `HK$${calculatedMonthTuition} (功課班按月計算)`
+                                    payStatus: c.isPaid ? '已繳費' : '待繳費'
                                 })
                             } else {
-                                // 專科班 / 其他班邏輯：顯示個別日期
+                                // 專科班邏輯：計算該月份上堂日數，將學費除堂數乘該月上堂堂數計算該月學費
                                 if (monthDates.length > 0) {
                                     if (monthDates.length > maxDatesCount) {
                                         maxDatesCount = monthDates.length
@@ -1621,8 +1540,12 @@
                                         const status = c.attendanceOverrides[d] || '出席'
                                         return status === '出席' ? d : `${d} (${status})`
                                     })
-                                    const tuitionVal = Number(c.price) || 0
-                                    grandTotalCalculatedTuition += tuitionVal
+
+                                    const monthlyLessonsCount = monthDates.length
+                                    const totalLessonsOriginal = c.totalLessons || 1
+                                    const basePrice = Number(c.price) || 0
+                                    const calculatedMonthTuition = Math.round((basePrice / totalLessonsOriginal) * monthlyLessonsCount)
+                                    grandTotalCalculatedTuition += calculatedMonthTuition
 
                                     rows.push({
                                         name: s.name,
@@ -1632,7 +1555,7 @@
                                         isHomework: false,
                                         dates: formattedDates,
                                         payStatus: c.isPaid ? '已繳費' : '待繳費',
-                                        payAmountText: c.isPaid ? `HK$${c.paidAmount || c.price}` : `HK$${c.price} (未收)`
+                                        payAmountText: `HK$${calculatedMonthTuition} (專科按月算)`
                                     })
                                 }
                             }
@@ -1659,9 +1582,8 @@
                             `"${r.courseName}"`
                         ]
                         if (r.isHomework) {
-                            // 功課班欄位：日期留空，並在第一欄日期或備註顯示本月堂數與計算學費
                             for (let i = 0; i < maxDatesCount; i++) {
-                                line.push(i === 0 ? `"本月共 ${r.monthlyCount} 堂"` : `""`)
+                                line.push(`""`)
                             }
                             line.push(`"${r.payStatus}"`, `"HK$${r.calculatedTuition} (功課班)"`)
                         } else {
@@ -1673,7 +1595,6 @@
                         csv += line.join(',') + '\n'
                     })
 
-                    // 最後加上全月總學費統計行
                     const totalLine = [`"【全月總學費統計】"`, `""`, `""`, `""`]
                     for (let i = 0; i < maxDatesCount; i++) {
                         totalLine.push(`""`)
@@ -1738,7 +1659,6 @@
                     currentReceipt, makeupStep, pendingLeaves, selectedLeaveToMakeup, makeupTargetDate,
                     feeStep, selectedFeeCourse, feeForm, refundForm,
                     activeStudent, newCourse, weekdayOptions, manualNewDate, editCourseNewDate, detailTab,
-                    currentYear, currentMonth, daysInMonth, firstDayOfWeek, changeMonth, getLogsByMonthDate,
                     currentDayLessons, weekDaysList, categoryGroups,
                     totalCollectedThisMonth, totalPendingAmount, totalPendingLeavesCount, unpaidCoursesList,
                     addStudent, editStudentProfile, removeStudentById, openQuickMenu, handleQuickAction,
